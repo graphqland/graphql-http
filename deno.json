@@ -1,0 +1,15 @@
+{
+  "tasks": {
+    "test": "deno test --ignore=node_modules --import-map=_test_import_map.json --doc --coverage=coverage"
+  },
+  "fmt": {
+    "files": {
+      "exclude": ["node_modules", "npm", "CHANGELOG.md"]
+    }
+  },
+  "lint": {
+    "files": {
+      "exclude": ["node_modules", "npm", "CHANGELOG.md"]
+    }
+  }
+}
