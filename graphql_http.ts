@@ -10,6 +10,7 @@ import {
   GraphQLArgs,
   PartialBy,
   RenderPageOptions,
+  renderPlaygroundPage,
 } from "./deps.ts";
 import { resolveErrorMsg } from "./utils.ts";
 
@@ -71,9 +72,6 @@ export default function graphqlHttp(
     const isPlaygroundRequest = validatePlaygroundRequest(req);
 
     if (isPlaygroundRequest && playground) {
-      const { renderPlaygroundPage } = await import(
-        "https://esm.sh/graphql-playground-html@1.6.30"
-      );
       const playground = renderPlaygroundPage(playgroundOptions);
 
       const res = new Response(playground, {

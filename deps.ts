@@ -12,7 +12,10 @@ export {
   JSON,
   type json,
 } from "https://deno.land/x/pure_json@1.0.0-beta.1/mod.ts";
-export type { RenderPageOptions } from "https://esm.sh/graphql-playground-html@1.6.30";
+export {
+  type RenderPageOptions,
+  renderPlaygroundPage,
+} from "https://esm.sh/graphql-playground-html@1.6.30";
 
 export type PartialBy<T, K = keyof T> =
   Omit<T, K & keyof T> & Partial<Pick<T, K & keyof T>> extends infer U
