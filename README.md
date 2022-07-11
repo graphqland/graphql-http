@@ -36,17 +36,18 @@ const schema = `type Query {
   hello: String!
 }
 `;
+const graphqlResponse = graphqlHttp({
+  schema: buildSchema(schema),
+  rootValue: {
+    hello: () => "world",
+  },
+  playground: true,
+});
 
 const handler: Handler = (req) => {
   const { pathname } = new URL(req.url);
   if (pathname === "/graphql") {
-    return graphqlHttp({
-      schema: buildSchema(schema),
-      rootValue: {
-        hello: () => "world",
-      },
-      playground: true,
-    })(req);
+    return graphqlResponse(req);
   }
 
   return new Response("Not Found", {
