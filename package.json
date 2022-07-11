@@ -1,5 +1,5 @@
 {
-  "name": "graphql-http",
+  "name": "gql-http",
   "private": true,
   "scripts": {
     "commit": "cz",
