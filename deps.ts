@@ -1,9 +1,15 @@
-export { graphql, type GraphQLArgs } from "https://esm.sh/graphql@16.5.0";
+export {
+  type ExecutionResult,
+  graphql,
+  type GraphQLArgs,
+  GraphQLError,
+} from "https://esm.sh/graphql@16.5.0";
 export {
   contentType,
   parseMediaType,
 } from "https://deno.land/std@0.147.0/media_types/mod.ts";
 export {
+  isNil,
   isNull,
   isObject,
   isString,
@@ -16,6 +22,7 @@ export {
   type RenderPageOptions,
   renderPlaygroundPage,
 } from "https://esm.sh/graphql-playground-html@1.6.30";
+export { Status } from "https://deno.land/std@0.148.0/http/mod.ts";
 
 export type PartialBy<T, K = keyof T> =
   Omit<T, K & keyof T> & Partial<Pick<T, K & keyof T>> extends infer U

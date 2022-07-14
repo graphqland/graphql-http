@@ -1,18 +1,16 @@
-import {
-  InvalidError,
-  MissingError,
-  validatePlaygroundRequest,
-  validateRequest,
-} from "./validates.ts";
+import { validatePlaygroundRequest, validateRequest } from "./validates.ts";
 import {
   contentType,
+  ExecutionResult,
   graphql,
   GraphQLArgs,
+  GraphQLError,
+  JSON,
   PartialBy,
   RenderPageOptions,
   renderPlaygroundPage,
+  Status,
 } from "./deps.ts";
-import { resolveErrorMsg } from "./utils.ts";
 
 export type Params =
   & PartialBy<GraphQLArgs, "source">
@@ -69,25 +67,24 @@ export default function graphqlHttp(
   }: Readonly<Params>,
 ): (req: Request) => Promise<Response> {
   return async (req: Request): Promise<Response> => {
-    const isPlaygroundRequest = validatePlaygroundRequest(req);
-
-    if (isPlaygroundRequest && playground) {
-      const playground = renderPlaygroundPage(playgroundOptions);
-
-      const res = new Response(playground, {
-        headers: {
-          "content-type": contentType("text/html"),
-        },
-      });
-
-      return res;
-    }
-
     const [data, err] = await validateRequest(req);
-
     if (err) {
-      const res = makeResponseFromError(err);
-      return response(res);
+      if (playground && validatePlaygroundRequest(req)) {
+        const playground = renderPlaygroundPage(playgroundOptions);
+
+        return response(
+          new Response(playground, {
+            headers: {
+              "content-type": contentType("text/html"),
+            },
+          }),
+        );
+      }
+
+      const graphqlError = resolveError(err);
+      const result: ExecutionResult = { errors: [graphqlError] };
+
+      return response(res(result, { status: err.statusHint }));
     }
 
     const { query: source, variableValues, operationName } = data;
@@ -99,53 +96,52 @@ export default function graphqlHttp(
         operationName,
         ...rest,
       });
-      const res = new Response(JSON.stringify(result), {
-        headers: {
-          "content-type": contentType(".json"),
-        },
-      });
 
-      return response(res);
-    } catch (e) {
-      const msg = resolveErrorMsg(e);
-      const res = new Response(msg, {
-        status: 500,
-        headers: {
-          "content-type": contentType("txt"),
-        },
-      });
-      return response(res);
+      return response(res(result, { status: Status.OK }));
+    } catch (er) {
+      const error = resolveError(er);
+      const result: ExecutionResult = { errors: [error] };
+
+      return response(res(result, { status: Status.InternalServerError }));
     }
   };
 }
 
-function makeResponseFromError(err: MissingError | InvalidError): Response {
-  if (err.code === "INVALID_HTTP_METHOD") {
-    const res = new Response(err.hint, {
-      status: 405,
-      headers: {
-        "content-type": contentType("txt"),
-      },
-    });
-    return res;
-  }
-  if (err.code === "INVALID_HEADER_CONTENT_TYPE") {
-    const res = new Response(err.hint, {
-      status: 415,
-      headers: {
-        "content-type": contentType("txt"),
-      },
-    });
+function res(
+  result: ExecutionResult,
+  responseInit: Readonly<ResponseInit>,
+): Response {
+  const [resultStr, err] = JSON.stringify(result);
 
-    return res;
+  if (err) {
+    const grqphqlError = resolveError(err);
+    const result: ExecutionResult = { errors: [grqphqlError] };
+    const [body] = JSON.stringify(result);
+    return new Response(body, {
+      headers: {
+        "content-type": contentType(".json"),
+      },
+      status: Status.InternalServerError,
+    });
   }
 
-  const res = new Response(err.hint, {
-    status: 400,
-    headers: {
-      "content-type": contentType("txt"),
-    },
-  });
+  const response = new Response(resultStr, responseInit);
+  response.headers.append("content-type", contentType(".json"));
 
-  return res;
+  return response;
+}
+
+function resolveError(er: unknown): GraphQLError {
+  if (er instanceof GraphQLError) return er;
+
+  return er instanceof Error
+    ? new GraphQLError(
+      er.message,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      er,
+    )
+    : new GraphQLError("Unknown error has occurred.");
 }

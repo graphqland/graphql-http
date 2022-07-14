@@ -1,53 +1,28 @@
 import {
+  isNil,
   isNull,
   isObject,
   isString,
   JSON,
-  json,
   parseMediaType,
+  Status,
 } from "./deps.ts";
+import {
+  GraphQLHTTPError,
+  InvalidBodyError,
+  InvalidHeaderError,
+  InvalidHTTPMethodError,
+  InvalidParameterError,
+  MissingBodyError,
+  MissingHeaderError,
+  MissingParameterError,
+} from "./errors.ts";
 
 export type Result = [data: {
   query: string;
   variableValues?: Record<string, unknown> | null;
   operationName?: string | null;
-}, err: undefined] | [data: undefined, err: MissingError | InvalidError];
-
-export const MISSING_PARAMETER = "MISSING_PARAMETER";
-export const MISSING_BODY = "MISSING_BODY";
-export const MISSING_HEADER = "MISSING_HEADER";
-export const INVALID_HTTP_METHOD = "INVALID_HTTP_METHOD";
-export const INVALID_HEADER_CONTENT_TYPE = "INVALID_HEADER_CONTENT_TYPE";
-export const INVALID_PARAMETER = "INVALID_PARAMETER";
-export const INVALID_BODY = "INVALID_BODY";
-
-type MissingErrorCode =
-  | typeof MISSING_PARAMETER
-  | typeof MISSING_BODY
-  | typeof MISSING_HEADER;
-
-type InvalidErrorCode =
-  | typeof INVALID_HTTP_METHOD
-  | typeof INVALID_HEADER_CONTENT_TYPE
-  | typeof INVALID_PARAMETER
-  | typeof INVALID_BODY;
-
-export type ErrorCode = MissingErrorCode | InvalidErrorCode;
-
-type BaseError = {
-  hint: string;
-  code: string;
-  expected?: string[];
-};
-
-export type MissingError = BaseError & {
-  code: MissingErrorCode;
-};
-export type InvalidError = BaseError & {
-  code: InvalidErrorCode;
-  actual: unknown;
-  expected?: unknown[];
-};
+}, err: undefined] | [data: undefined, err: GraphQLHTTPError];
 
 export function validateRequest(req: Request): Promise<Result> | Result {
   const method = req.method;
@@ -60,13 +35,15 @@ export function validateRequest(req: Request): Promise<Result> | Result {
       return validatePostRequest(req);
     }
     default: {
-      return [, {
-        hint:
-          `The http method is invalid. ${method}, valid: "GET", "HEAD", "POST"`,
-        code: INVALID_HTTP_METHOD,
-        actual: method,
-        expected: ["GET", "HEAD", "POST"],
-      }];
+      return [
+        ,
+        new InvalidHTTPMethodError(
+          {
+            statusHint: Status.MethodNotAllowed,
+            message: `GraphQL only supports GET and POST requests.`,
+          },
+        ),
+      ];
     }
   }
 }
@@ -76,22 +53,32 @@ export function validateGetRequest(req: Request): Result {
 
   const source = url.searchParams.get("query");
   if (!source) {
-    return [, {
-      hint: `The parameter is required. "query"`,
-      code: MISSING_PARAMETER,
-    }];
+    return [
+      ,
+      new MissingParameterError({
+        message: `The parameter is required. "query"`,
+        statusHint: Status.BadRequest,
+      }),
+    ];
   }
+  let variableValues: Record<string, unknown> | null = null;
   const variables = url.searchParams.get("variables");
-  const variableValues = variables
-    ? (() => {
-      const [data, err] = JSON.parse(variables);
-      if (err || !isPlainObject(data)) {
-        return null;
-      }
+  if (isString(variables)) {
+    const [data, err] = JSON.parse(variables);
+    if (err) {
+      return [
+        ,
+        new InvalidParameterError({
+          message: `The parameter is invalid. "variables" are invalid JSON.`,
+          statusHint: Status.BadRequest,
+        }),
+      ];
+    }
+    if (isPlainObject(data)) {
+      variableValues = data;
+    }
+  }
 
-      return data;
-    })()
-    : null;
   const operationName = url.searchParams.get("operationName");
 
   return [{
@@ -104,74 +91,128 @@ export function validateGetRequest(req: Request): Result {
 export async function validatePostRequest(req: Request): Promise<Result> {
   const contentType = req.headers.get("content-type");
   if (!contentType) {
-    return [, {
-      hint: `The header is required. "Content-Type"`,
-      code: MISSING_HEADER,
-    }];
+    return [
+      ,
+      new MissingHeaderError({
+        message: `The header is required. "Content-Type"`,
+        statusHint: Status.BadRequest,
+      }),
+    ];
   }
 
   const [mediaType] = parseMediaType(contentType);
+  // const charset = params["charset"] ? params["charset"].toLowerCase() : "utf-8";
+
+  // // TODO:(miyauci) check the body already read.
+  // const body = await req.text();
 
   switch (mediaType) {
     case "application/json": {
-      const data = await req.json() as Partial<json>;
-      if (isPlainObject(data)) {
-        const { query, operationName = null, variables = null } = data;
+      const data = await req.text();
+      const [json, err] = JSON.parse(data);
 
-        if (!isString(query)) {
-          return [, {
-            code: MISSING_PARAMETER,
-            hint: `The parameter is required. "query"`,
-          }];
-        }
-
-        if (!isNull(variables) && !isPlainObject(variables)) {
-          return [, {
-            code: INVALID_PARAMETER,
-            hint: `The parameter is invalid. "variables": JSON format`,
-            actual: variables,
-          }];
-        }
-        if (!isStringOrNull(operationName)) {
-          return [, {
-            code: INVALID_PARAMETER,
-            hint: `The parameter is invalid. "operationName": string, null`,
-            actual: operationName,
-          }];
-        }
-
-        return [{
-          query,
-          operationName,
-          variableValues: variables,
-        }, undefined];
+      if (err) {
+        return [
+          ,
+          new InvalidBodyError({
+            message: `The message body is invalid. Invalid JSON format.`,
+            statusHint: Status.BadRequest,
+          }),
+        ];
       }
-      return [, {
-        code: INVALID_BODY,
-        hint: `The message body is invalid. Must be JSON format`,
-        actual: data,
-      }];
+
+      if (!isPlainObject(json)) {
+        return [
+          ,
+          new InvalidBodyError({
+            message: `The message body is invalid. Must be Nested JSON format.`,
+            statusHint: Status.BadRequest,
+          }),
+        ];
+      }
+
+      const { query: _query, operationName = null, variables = null } = json;
+
+      const query = _query
+        ? _query
+        : new URL(req.url).searchParams.get("query");
+
+      if (isNil(query)) {
+        return [
+          ,
+          new InvalidBodyError({
+            message: `The parameter is required. "query"`,
+            statusHint: Status.BadRequest,
+          }),
+        ];
+      }
+
+      if (!isString(query)) {
+        return [
+          ,
+          new InvalidBodyError({
+            message: `The parameter is invalid. "query" must be string.`,
+            statusHint: Status.BadRequest,
+          }),
+        ];
+      }
+
+      if (!isNull(variables) && !isPlainObject(variables)) {
+        return [
+          ,
+          new InvalidBodyError({
+            message:
+              `The parameter is invalid. "variables" must be JSON format`,
+            statusHint: Status.BadRequest,
+          }),
+        ];
+      }
+      if (!isStringOrNull(operationName)) {
+        return [
+          ,
+          new InvalidBodyError({
+            message:
+              `The parameter is invalid. "operationName" must be string or null.`,
+            statusHint: Status.BadRequest,
+          }),
+        ];
+      }
+
+      return [{
+        query,
+        operationName,
+        variableValues: variables,
+      }, undefined];
     }
 
     case "application/graphql": {
-      const query = await req.text();
+      const body = await req.text();
+      const fromQueryString = new URL(req.url).searchParams.get("query");
+      const query = !body ? fromQueryString : body;
+
       if (!query) {
-        return [, {
-          code: MISSING_BODY,
-          hint: `The message body is required. "GraphQL query"`,
-        }];
+        return [
+          ,
+          new MissingBodyError({
+            message: `The message body is required. "GraphQL query"`,
+            statusHint: Status.BadRequest,
+          }),
+        ];
       }
       return [{ query }, undefined];
     }
 
+    // TODO:(miayuci) add 'application/x-www-form-urlencoded'
+
     default: {
-      return [, {
-        code: INVALID_HEADER_CONTENT_TYPE,
-        hint:
-          `The header is invalid. Valid "Content-Type": "application/json", "application/graphql"`,
-        actual: mediaType,
-        expected: ["application/json", "application/graphql"],
-      }];
+      return [
+        ,
+        new InvalidHeaderError({
+          message:
+            `The header is invalid. "Content-Type" must be "application/json" or "application/graphql"`,
+          statusHint: Status.UnsupportedMediaType,
+        }),
+      ];
     }
   }
 }
@@ -181,18 +222,16 @@ export function validatePlaygroundRequest(req: Request): boolean {
     return false;
   }
 
-  const url = new URL(req.url);
   const accept = req.headers.get("accept");
-
   if (!accept) return false;
+
   const accepts = accept.split(",");
   const acceptHTML = accepts.some((accept) => {
     const [mediaType] = parseMediaType(accept);
     return mediaType === "text/html";
   });
-  const hasRaw = url.searchParams.has("raw");
 
-  return acceptHTML && !hasRaw;
+  return acceptHTML;
 }
 
 function isPlainObject(value: unknown): value is Record<PropertyKey, unknown> {
