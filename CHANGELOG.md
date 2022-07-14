@@ -1,3 +1,10 @@
+# [1.0.0-beta.3](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.2...1.0.0-beta.3) (2022-07-14)
+
+
+### Bug Fixes
+
+* return application/json content anytime for strict GraphQL over HTTP Spec ([b745284](https://github.com/TomokiMiyauci/graphql-http/commit/b74528436099f6c089e96dc3574c6c9490191167))
+
 # [1.0.0-beta.2](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.1...1.0.0-beta.2) (2022-07-11)
 
 
