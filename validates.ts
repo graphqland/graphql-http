@@ -40,7 +40,8 @@ export function validateRequest(req: Request): Promise<Result> | Result {
         new InvalidHTTPMethodError(
           {
             statusHint: Status.MethodNotAllowed,
-            message: `GraphQL only supports GET and POST requests.`,
+            message:
+              `Invalid HTTP method. GraphQL only supports GET and POST requests.`,
           },
         ),
       ];
