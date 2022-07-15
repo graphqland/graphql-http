@@ -1,6 +1,7 @@
 import { describe, expect, it } from "./dev_deps.ts";
 import { validateGetRequest, validatePostRequest } from "./validates.ts";
 import {
+  InvalidBodyError,
   InvalidHeaderError,
   InvalidParameterError,
   MissingBodyError,
@@ -99,6 +100,244 @@ it(
   },
 );
 
+it(describePostTests, `application/json`, async (t) => {
+  await t.step(
+    "should return InvalidBodyError when message body is invalid JSON format",
+    async () => {
+      const result = await validatePostRequest(
+        new Request(BASE_URL, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+        }),
+      );
+      expect(result[0]).toBeUndefined();
+      expect(result[1]).toError(
+        InvalidBodyError,
+        `The message body is invalid. Invalid JSON format.`,
+      );
+    },
+  );
+  await t.step(
+    "should return InvalidBodyError when message body is not JSON object format",
+    async () => {
+      const result = await validatePostRequest(
+        new Request(BASE_URL, {
+          body: "true",
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+        }),
+      );
+      expect(result[0]).toBeUndefined();
+      expect(result[1]).toError(
+        InvalidBodyError,
+        `The message body is invalid. Must be JSON object format.`,
+      );
+    },
+  );
+  await t.step(
+    "should return InvalidBodyError when query parameter from message body or query string is not exists",
+    async () => {
+      const result = await validatePostRequest(
+        new Request(BASE_URL, {
+          body: `{"query":null}`,
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+        }),
+      );
+      expect(result[0]).toBeUndefined();
+      expect(result[1]).toError(
+        InvalidBodyError,
+        `The parameter is required. "query"`,
+      );
+    },
+  );
+  await t.step(
+    "should return InvalidBodyError when query parameter from message body is not string format",
+    async () => {
+      const result = await validatePostRequest(
+        new Request(BASE_URL, {
+          body: `{"query":0}`,
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+        }),
+      );
+      expect(result[0]).toBeUndefined();
+      expect(result[1]).toError(
+        InvalidBodyError,
+        `The parameter is invalid. "query" must be string.`,
+      );
+    },
+  );
+  await t.step(
+    "should return data when parameter of query string is exists",
+    async () => {
+      const url = new URL(`?query=test`, BASE_URL);
+      const result = await validatePostRequest(
+        new Request(url.toString(), {
+          body: `{"query":null}`,
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+        }),
+      );
+      expect(result[0]).toEqual({
+        query: "test",
+        operationName: null,
+        variableValues: null,
+      });
+      expect(result[1]).toBeUndefined();
+    },
+  );
+  await t.step(
+    `should return data what "query" is from body when message body of "query" and query string of "query" are exist`,
+    async () => {
+      const url = new URL(`?query=from-query-string`, BASE_URL);
+      const result = await validatePostRequest(
+        new Request(url.toString(), {
+          body: `{"query":"from body"}`,
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+        }),
+      );
+      expect(result[0]).toEqual({
+        query: "from body",
+        operationName: null,
+        variableValues: null,
+      });
+      expect(result[1]).toBeUndefined();
+    },
+  );
+  await t.step(
+    `should return data when "Content-Type" is application/json; charset=utf-8`,
+    async () => {
+      const result = await validatePostRequest(
+        new Request(BASE_URL, {
+          body: `{"query":"from body"}`,
+          method: "POST",
+          headers: {
+            "content-type": "application/json; charset=utf-8",
+          },
+        }),
+      );
+      expect(result[0]).toEqual({
+        query: "from body",
+        operationName: null,
+        variableValues: null,
+      });
+      expect(result[1]).toBeUndefined();
+    },
+  );
+  await t.step(
+    `should return InvalidBodyError when "variables" is not JSON object format`,
+    async () => {
+      const result = await validatePostRequest(
+        new Request(BASE_URL, {
+          body: `{"query":"query","variables":false}`,
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+        }),
+      );
+      expect(result[0]).toBeUndefined();
+      expect(result[1]).toError(
+        InvalidBodyError,
+        'The parameter is invalid. "variables" must be JSON object format',
+      );
+    },
+  );
+  await t.step(
+    `should return data when "variables" is null`,
+    async () => {
+      const result = await validatePostRequest(
+        new Request(BASE_URL, {
+          body: `{"query":"query","variables":null}`,
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+        }),
+      );
+      expect(result[0]).toEqual({
+        query: "query",
+        operationName: null,
+        variableValues: null,
+      });
+      expect(result[1]).toBeUndefined();
+    },
+  );
+  await t.step(
+    `should return data when "variables" is JSON object format`,
+    async () => {
+      const result = await validatePostRequest(
+        new Request(BASE_URL, {
+          body: `{"query":"query","variables":{"abc":[]}}`,
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+        }),
+      );
+      expect(result[0]).toEqual({
+        query: "query",
+        operationName: null,
+        variableValues: { abc: [] },
+      });
+      expect(result[1]).toBeUndefined();
+    },
+  );
+  await t.step(
+    `should return InvalidBodyError when "operationName" is not string or not null`,
+    async () => {
+      const result = await validatePostRequest(
+        new Request(BASE_URL, {
+          body: `{"query":"query","operationName":0}`,
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+        }),
+      );
+      expect(result[0]).toBeUndefined();
+      expect(result[1]).toError(
+        InvalidBodyError,
+        'The parameter is invalid. "operationName" must be string or null.',
+      );
+    },
+  );
+  await t.step(
+    `should return data when "operationName" is string`,
+    async () => {
+      const result = await validatePostRequest(
+        new Request(BASE_URL, {
+          body: `{"query":"query","operationName":"subscription"}`,
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+        }),
+      );
+      expect(result[0]).toEqual({
+        query: "query",
+        operationName: "subscription",
+        variableValues: null,
+      });
+      expect(result[1]).toBeUndefined();
+    },
+  );
+});
+
 it(
   describePostTests,
   `application/graphql`,
@@ -137,6 +376,23 @@ it(
         expect(result[1]).toBeUndefined();
       },
     );
+    await t.step(
+      `should return data when the message body is exists and content-type with charset`,
+      async () => {
+        const result = await validatePostRequest(
+          new Request(BASE_URL, {
+            body: "test",
+            method: "POST",
+            headers: {
+              "content-type": "application/graphql;charset=utf-8",
+            },
+          }),
+        );
+        expect(result[0]).toEqual({ query: "test" });
+        expect(result[1]).toBeUndefined();
+      },
+    );
+
     await t.step(
       `should return data when the query string of "query" is exists`,
       async () => {

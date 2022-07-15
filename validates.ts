@@ -126,7 +126,7 @@ export async function validatePostRequest(req: Request): Promise<Result> {
         return [
           ,
           new InvalidBodyError({
-            message: `The message body is invalid. Must be Nested JSON format.`,
+            message: `The message body is invalid. Must be JSON object format.`,
             statusHint: Status.BadRequest,
           }),
         ];
@@ -134,9 +134,9 @@ export async function validatePostRequest(req: Request): Promise<Result> {
 
       const { query: _query, operationName = null, variables = null } = json;
 
-      const query = _query
-        ? _query
-        : new URL(req.url).searchParams.get("query");
+      const query = isNil(_query)
+        ? new URL(req.url).searchParams.get("query")
+        : _query;
 
       if (isNil(query)) {
         return [
@@ -163,7 +163,7 @@ export async function validatePostRequest(req: Request): Promise<Result> {
           ,
           new InvalidBodyError({
             message:
-              `The parameter is invalid. "variables" must be JSON format`,
+              `The parameter is invalid. "variables" must be JSON object format`,
             statusHint: Status.BadRequest,
           }),
         ];
