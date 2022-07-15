@@ -126,7 +126,7 @@ function res(
   }
 
   const response = new Response(resultStr, responseInit);
-  response.headers.append("content-type", contentType(".json"));
+  response.headers.set("content-type", contentType(".json"));
 
   return response;
 }
