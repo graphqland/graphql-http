@@ -1,8 +1,13 @@
 import { describe, expect, it } from "./dev_deps.ts";
-import { validateGetRequest, validatePostRequest } from "./validates.ts";
+import {
+  validateGetRequest,
+  validatePostRequest,
+  validateRequest,
+} from "./validates.ts";
 import {
   InvalidBodyError,
   InvalidHeaderError,
+  InvalidHTTPMethodError,
   InvalidParameterError,
   MissingBodyError,
   MissingHeaderError,
@@ -11,6 +16,28 @@ import {
 
 const describeGetTests = describe("validateGetRequest");
 const BASE_URL = "https://test.test";
+
+it(
+  describe("validateRequest"),
+  "return InvalidHTTPMethodError when The HTTP method is not GET or not POST",
+  async () => {
+    await Promise.all(
+      ["OPTION", "HEAD", "PUT", "DELETE", "PATCH"].map(
+        async (method) => {
+          const [, err] = await validateRequest(
+            new Request(BASE_URL, {
+              method,
+            }),
+          );
+          expect(err).toError(
+            InvalidHTTPMethodError,
+            `Invalid HTTP method. GraphQL only supports GET and POST requests.`,
+          );
+        },
+      ),
+    );
+  },
+);
 
 it(
   describeGetTests,
