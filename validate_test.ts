@@ -61,7 +61,7 @@ it(
 
 it(
   describeGetTests,
-  `should return error when header of "Accept" does not contain "application/graphql" or "application/json"`,
+  `should return error when header of "Accept" does not contain "application/graphql+json" or "application/json"`,
   () => {
     const result = validateGetRequest(
       new Request(BASE_URL, {
@@ -100,12 +100,12 @@ it(
 
 it(
   describeGetTests,
-  `should return data when header of "Accept" contain "application/graphql"`,
+  `should return data when header of "Accept" contain "application/graphql+json"`,
   () => {
     const result = validateGetRequest(
       new Request(queryString(BASE_URL, { query: `query` }), {
         headers: {
-          Accept: `application/graphql`,
+          Accept: `application/graphql+json`,
         },
       }),
     );
@@ -201,7 +201,7 @@ it(
     expect(result[0]).toBeUndefined();
     expect(result[1]).toError(
       InvalidHeaderError,
-      'The header is invalid. "Content-Type" must be "application/json" or "application/graphql"',
+      'The header is invalid. "Content-Type" must be "application/json" or "application/graphql+json"',
     );
   },
 );
@@ -259,7 +259,7 @@ it(describePostTests, `application/json`, async (t) => {
   );
 
   await t.step(
-    `should return error when header of "Content-Type" does not contain "application/graphql" or "application/json"`,
+    `should return error when header of "Content-Type" does not contain "application/graphql+json" or "application/json"`,
     async () => {
       const result = await validatePostRequest(
         new BaseRequest(BASE_URL, {
@@ -272,7 +272,7 @@ it(describePostTests, `application/json`, async (t) => {
       expect(result[0]).toBeUndefined();
       expect(result[1]).toError(
         InvalidHeaderError,
-        `The header is invalid. "Content-Type" must be "application/json" or "application/graphql"`,
+        `The header is invalid. "Content-Type" must be "application/json" or "application/graphql+json"`,
       );
     },
   );
@@ -284,7 +284,7 @@ it(describePostTests, `application/json`, async (t) => {
         new BaseRequest(BASE_URL, {
           method: "POST",
           headers: {
-            "content-type": "application/graphql; charset=utf-16",
+            "content-type": "application/graphql+json; charset=utf-16",
           },
         }),
       );
@@ -535,7 +535,7 @@ it(describePostTests, `application/json`, async (t) => {
 
 it(
   describePostTests,
-  `application/graphql`,
+  `application/graphql+json`,
   async (t) => {
     await t.step(
       "should return MissingBodyError when the message body is empty",
@@ -544,7 +544,7 @@ it(
           new BaseRequest(BASE_URL, {
             method: "POST",
             headers: {
-              "content-type": "application/graphql",
+              "content-type": "application/graphql+json",
             },
           }),
         );
@@ -563,7 +563,7 @@ it(
             body: "test",
             method: "POST",
             headers: {
-              "content-type": "application/graphql",
+              "content-type": "application/graphql+json",
             },
           }),
         );
@@ -579,7 +579,7 @@ it(
             body: "test",
             method: "POST",
             headers: {
-              "content-type": "application/graphql;charset=utf-8",
+              "content-type": "application/graphql+json;charset=utf-8",
             },
           }),
         );
@@ -596,7 +596,7 @@ it(
           new BaseRequest(url.toString(), {
             method: "POST",
             headers: {
-              "content-type": "application/graphql",
+              "content-type": "application/graphql+json",
             },
           }),
         );
@@ -613,7 +613,7 @@ it(
             body: "from body",
             method: "POST",
             headers: {
-              "content-type": "application/graphql",
+              "content-type": "application/graphql+json",
             },
           }),
         );

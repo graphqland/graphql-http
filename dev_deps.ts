@@ -64,7 +64,7 @@ export function queryString(
 export class BaseRequest extends Request {
   constructor(input: RequestInfo, init?: RequestInit) {
     const headers = new Headers(init?.headers);
-    headers.append("accept", "application/graphql");
+    headers.append("accept", "application/graphql+json");
 
     super(input, { ...init, headers });
   }

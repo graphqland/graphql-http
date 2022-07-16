@@ -1,5 +1,6 @@
 import { validatePlaygroundRequest, validateRequest } from "./validates.ts";
 import {
+  accepts,
   contentType,
   ExecutionResult,
   getOperationAST,
@@ -15,6 +16,7 @@ import {
   Status,
   tryCatch,
 } from "./deps.ts";
+import { MIME_TYPE } from "./constants.ts";
 
 export type Params =
   & PartialBy<GraphQLArgs, "source">
@@ -72,6 +74,7 @@ export default function graphqlHttp(
 ): (req: Request) => Promise<Response> {
   return async (req: Request): Promise<Response> => {
     const [data, err] = await validateRequest(req);
+
     if (err) {
       if (playground && validatePlaygroundRequest(req)) {
         const playground = renderPlaygroundPage(playgroundOptions);
@@ -152,14 +155,14 @@ function res(
     const [body] = JSON.stringify(result);
     return new Response(body, {
       headers: {
-        "content-type": contentType(".json"),
+        "content-type": MIME_TYPE,
       },
       status: Status.InternalServerError,
     });
   }
 
   const response = new Response(resultStr, responseInit);
-  response.headers.set("content-type", contentType(".json"));
+  response.headers.set("content-type", MIME_TYPE);
 
   return response;
 }

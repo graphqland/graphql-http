@@ -122,7 +122,7 @@ export async function validatePostRequest(req: Request): Promise<Result> {
       ,
       new InvalidHeaderError({
         message:
-          `The header is invalid. "Content-Type" must be "application/json" or "application/graphql"`,
+          `The header is invalid. "Content-Type" must be "application/json" or "application/graphql+json"`,
         statusHint: Status.UnsupportedMediaType,
       }),
     ];
@@ -221,7 +221,7 @@ export async function validatePostRequest(req: Request): Promise<Result> {
       }, undefined];
     }
 
-    case "application/graphql": {
+    case "application/graphql+json": {
       const body = await req.text();
       const fromQueryString = new URL(req.url).searchParams.get("query");
       const query = !body ? fromQueryString : body;
@@ -283,7 +283,11 @@ function validateAcceptHeader(
     ];
   }
 
-  const acceptResult = accepts(req, "application/graphql", "application/json");
+  const acceptResult = accepts(
+    req,
+    "application/graphql+json",
+    "application/json",
+  );
 
   if (!acceptResult) {
     return [
@@ -301,6 +305,6 @@ function validateAcceptHeader(
 
 function isSupportedMediaType(
   mediaType: string,
-): mediaType is "application/graphql" | "application/json" {
-  return ["application/graphql", "application/json"].includes(mediaType);
+): mediaType is "application/graphql+json" | "application/json" {
+  return ["application/graphql+json", "application/json"].includes(mediaType);
 }
