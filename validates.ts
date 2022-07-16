@@ -273,13 +273,13 @@ function validateAcceptHeader(
   data: undefined,
   err: GraphQLHTTPError,
 ] {
+  // Accept header is not provided, treat the request has `Accept: application/json`
+  // From 1st January 2025 (2025-01-01T00:00:00Z), treat the request has `Accept: application/graphql+json`
+  // @see https://graphql.github.io/graphql-over-http/draft/#sec-Legacy-watershed
   if (!req.headers.has("accept")) {
     return [
-      ,
-      new MissingHeaderError({
-        message: `The header is required. "Accept"`,
-        statusHint: Status.BadRequest,
-      }),
+      "application/json",
+      undefined,
     ];
   }
 

@@ -72,24 +72,6 @@ const describeTests = describe("graphqlHttp");
 describe("HTTP method is GET", () => {
   it(
     describeTests,
-    `should return 400 when "Accept" header is not exists`,
-    async () => {
-      const res = await responser(
-        new Request(new URL(BASE_URL).toString()),
-      );
-
-      expect(res.status).toBe(Status.BadRequest);
-      expect(res.headers.get("content-type")).toEqual(
-        MIME_TYPE,
-      );
-      await expect(res.json()).resolves.toEqual({
-        errors: [{ message: `The header is required. "Accept"` }],
-      });
-    },
-  );
-
-  it(
-    describeTests,
     `should return 406 when "Accept" header does not include application/graphql+json or application/json`,
     async () => {
       const res = await responser(
@@ -259,26 +241,6 @@ describe("HTTP method is GET", () => {
 });
 
 describe("HTTP method is POST", () => {
-  it(
-    describeTests,
-    `should return 400 when "Accept" header is not exists`,
-    async () => {
-      const res = await responser(
-        new Request(new URL(BASE_URL).toString(), {
-          method: "POST",
-        }),
-      );
-
-      expect(res.status).toBe(Status.BadRequest);
-      expect(res.headers.get("content-type")).toEqual(
-        MIME_TYPE,
-      );
-      await expect(res.json()).resolves.toEqual({
-        errors: [{ message: `The header is required. "Accept"` }],
-      });
-    },
-  );
-
   it(
     describeTests,
     `should return 406 when "Accept" header does not include application/graphql+json or application/json`,
