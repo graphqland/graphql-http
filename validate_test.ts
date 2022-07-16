@@ -208,6 +208,41 @@ it(
 
 it(describePostTests, `application/json`, async (t) => {
   await t.step(
+    `should return error when header of "Accept" is not exists`,
+    async () => {
+      const result = await validatePostRequest(
+        new Request(BASE_URL, {
+          method: "POST",
+        }),
+      );
+      expect(result[0]).toBeUndefined();
+      expect(result[1]).toError(
+        MissingHeaderError,
+        `The header is required. "Accept"`,
+      );
+    },
+  );
+
+  await t.step(
+    `should return error when header of "Accept" does not contain "application/graphql" or "application/json"`,
+    async () => {
+      const result = await validatePostRequest(
+        new Request(BASE_URL, {
+          method: "POST",
+          headers: {
+            accept: contentType("txt"),
+          },
+        }),
+      );
+      expect(result[0]).toBeUndefined();
+      expect(result[1]).toError(
+        InvalidHeaderError,
+        `The header is invalid. "Accept" must include "application/graphql+json" or "application/json"`,
+      );
+    },
+  );
+
+  await t.step(
     "should return InvalidBodyError when message body is invalid JSON format",
     async () => {
       const result = await validatePostRequest(

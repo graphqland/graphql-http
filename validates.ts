@@ -97,6 +97,11 @@ export function validateGetRequest(req: Request): Result {
 }
 
 export async function validatePostRequest(req: Request): Promise<Result> {
+  const acceptHeader = validateAcceptHeader(req);
+
+  if (acceptHeader[1]) {
+    return acceptHeader;
+  }
   const contentType = req.headers.get("content-type");
   if (!contentType) {
     return [

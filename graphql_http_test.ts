@@ -258,6 +258,52 @@ describe("HTTP method is GET", () => {
 });
 
 describe("HTTP method is POST", () => {
+  it(
+    describeTests,
+    `should return 400 when "Accept" header is not exists`,
+    async () => {
+      const res = await responser(
+        new Request(new URL(BASE_URL).toString(), {
+          method: "POST",
+        }),
+      );
+
+      expect(res.status).toBe(Status.BadRequest);
+      expect(res.headers.get("content-type")).toEqual(
+        "application/json; charset=UTF-8",
+      );
+      await expect(res.json()).resolves.toEqual({
+        errors: [{ message: `The header is required. "Accept"` }],
+      });
+    },
+  );
+
+  it(
+    describeTests,
+    `should return 406 when "Accept" header does not include application/graphql or application/json`,
+    async () => {
+      const res = await responser(
+        new Request(queryString(BASE_URL, {}), {
+          headers: {
+            "accept": "plain/text",
+          },
+          method: "POST",
+        }),
+      );
+
+      expect(res.status).toBe(Status.NotAcceptable);
+      expect(res.headers.get("content-type")).toEqual(
+        "application/json; charset=UTF-8",
+      );
+      await expect(res.json()).resolves.toEqual({
+        errors: [{
+          message:
+            `The header is invalid. "Accept" must include "application/graphql+json" or "application/json"`,
+        }],
+      });
+    },
+  );
+
   it("Allows POST with JSON encoding", async () => {
     const req = new BaseRequest(BASE_URL, {
       body: JSON.stringify({ query: "{test}" }),
