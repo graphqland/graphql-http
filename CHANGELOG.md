@@ -1,3 +1,11 @@
+# [1.0.0-beta.5](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.4...1.0.0-beta.5) (2022-07-16)
+
+
+### Features
+
+* add "Accept" header validationn for GET request ([c310b4c](https://github.com/TomokiMiyauci/graphql-http/commit/c310b4c7695d9fed45e6ee9cdfbc8a83239ace9c))
+* add validate query operation on GET method ([941abda](https://github.com/TomokiMiyauci/graphql-http/commit/941abdacfa03729453c3e3d2bade1cb05e4ccb98))
+
 # [1.0.0-beta.4](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.3...1.0.0-beta.4) (2022-07-15)
 
 
