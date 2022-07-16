@@ -1,4 +1,11 @@
-import { describe, expect, it } from "./dev_deps.ts";
+import {
+  BaseRequest,
+  contentType,
+  describe,
+  expect,
+  it,
+  queryString,
+} from "./dev_deps.ts";
 import {
   validateGetRequest,
   validatePostRequest,
@@ -25,7 +32,7 @@ it(
       ["OPTION", "HEAD", "PUT", "DELETE", "PATCH"].map(
         async (method) => {
           const [, err] = await validateRequest(
-            new Request(BASE_URL, {
+            new BaseRequest(BASE_URL, {
               method,
             }),
           );
@@ -41,9 +48,81 @@ it(
 
 it(
   describeGetTests,
-  `should return error when query string of "query" is not exists`,
+  `should return error when header of "Accept" is not exists`,
   () => {
     const result = validateGetRequest(new Request(BASE_URL));
+    expect(result[0]).toBeUndefined();
+    expect(result[1]).toError(
+      MissingHeaderError,
+      `The header is required. "Accept"`,
+    );
+  },
+);
+
+it(
+  describeGetTests,
+  `should return error when header of "Accept" does not contain "application/graphql" or "application/json"`,
+  () => {
+    const result = validateGetRequest(
+      new Request(BASE_URL, {
+        headers: {
+          accept: contentType("txt"),
+        },
+      }),
+    );
+    expect(result[0]).toBeUndefined();
+    expect(result[1]).toError(
+      InvalidHeaderError,
+      `The header is invalid. "Accept" must include "application/graphql+json" or "application/json"`,
+    );
+  },
+);
+
+it(
+  describeGetTests,
+  `should return data when header of "Accept" contain "application/json"`,
+  () => {
+    const result = validateGetRequest(
+      new Request(queryString(BASE_URL, { query: `query` }), {
+        headers: {
+          Accept: `application/json`,
+        },
+      }),
+    );
+    expect(result[1]).toBeUndefined();
+    expect(result[0]).toEqual({
+      query: "query",
+      variableValues: null,
+      operationName: null,
+    });
+  },
+);
+
+it(
+  describeGetTests,
+  `should return data when header of "Accept" contain "application/graphql"`,
+  () => {
+    const result = validateGetRequest(
+      new Request(queryString(BASE_URL, { query: `query` }), {
+        headers: {
+          Accept: `application/graphql`,
+        },
+      }),
+    );
+    expect(result[1]).toBeUndefined();
+    expect(result[0]).toEqual({
+      query: "query",
+      variableValues: null,
+      operationName: null,
+    });
+  },
+);
+
+it(
+  describeGetTests,
+  `should return error when query string of "query" is not exists`,
+  () => {
+    const result = validateGetRequest(new BaseRequest(BASE_URL));
     expect(result[0]).toBeUndefined();
     expect(result[1]).toError(
       MissingParameterError,
@@ -57,7 +136,7 @@ it(
   `should return InvalidParameterError when query string of "variables" is invalid JSON`,
   () => {
     const url = new URL("?query=query&variables=test", BASE_URL);
-    const result = validateGetRequest(new Request(url.toString()));
+    const result = validateGetRequest(new BaseRequest(url.toString()));
     expect(result[0]).toBeUndefined();
     expect(result[1]).toError(
       InvalidParameterError,
@@ -74,7 +153,7 @@ it(
       `?query=query&variables={"test":"test"}&operationName=query`,
       BASE_URL,
     );
-    const result = validateGetRequest(new Request(url.toString()));
+    const result = validateGetRequest(new BaseRequest(url.toString()));
     expect(result[0]).toEqual({
       query: `query`,
       variableValues: {
@@ -93,7 +172,7 @@ it(
   `should return MissingHeaderError when "Content-Type" header is missing`,
   async () => {
     const result = await validatePostRequest(
-      new Request(BASE_URL, {
+      new BaseRequest(BASE_URL, {
         method: "POST",
       }),
     );
@@ -111,7 +190,7 @@ it(
   `should return InvalidHeaderError when "Content-Type" header is unknown`,
   async () => {
     const result = await validatePostRequest(
-      new Request(BASE_URL, {
+      new BaseRequest(BASE_URL, {
         method: "POST",
         headers: {
           "content-type": "plain/txt",
@@ -132,7 +211,7 @@ it(describePostTests, `application/json`, async (t) => {
     "should return InvalidBodyError when message body is invalid JSON format",
     async () => {
       const result = await validatePostRequest(
-        new Request(BASE_URL, {
+        new BaseRequest(BASE_URL, {
           method: "POST",
           headers: {
             "content-type": "application/json",
@@ -150,7 +229,7 @@ it(describePostTests, `application/json`, async (t) => {
     "should return InvalidBodyError when message body is not JSON object format",
     async () => {
       const result = await validatePostRequest(
-        new Request(BASE_URL, {
+        new BaseRequest(BASE_URL, {
           body: "true",
           method: "POST",
           headers: {
@@ -169,7 +248,7 @@ it(describePostTests, `application/json`, async (t) => {
     "should return InvalidBodyError when query parameter from message body or query string is not exists",
     async () => {
       const result = await validatePostRequest(
-        new Request(BASE_URL, {
+        new BaseRequest(BASE_URL, {
           body: `{"query":null}`,
           method: "POST",
           headers: {
@@ -188,7 +267,7 @@ it(describePostTests, `application/json`, async (t) => {
     "should return InvalidBodyError when query parameter from message body is not string format",
     async () => {
       const result = await validatePostRequest(
-        new Request(BASE_URL, {
+        new BaseRequest(BASE_URL, {
           body: `{"query":0}`,
           method: "POST",
           headers: {
@@ -208,7 +287,7 @@ it(describePostTests, `application/json`, async (t) => {
     async () => {
       const url = new URL(`?query=test`, BASE_URL);
       const result = await validatePostRequest(
-        new Request(url.toString(), {
+        new BaseRequest(url.toString(), {
           body: `{"query":null}`,
           method: "POST",
           headers: {
@@ -229,7 +308,7 @@ it(describePostTests, `application/json`, async (t) => {
     async () => {
       const url = new URL(`?query=from-query-string`, BASE_URL);
       const result = await validatePostRequest(
-        new Request(url.toString(), {
+        new BaseRequest(url.toString(), {
           body: `{"query":"from body"}`,
           method: "POST",
           headers: {
@@ -249,7 +328,7 @@ it(describePostTests, `application/json`, async (t) => {
     `should return data when "Content-Type" is application/json; charset=utf-8`,
     async () => {
       const result = await validatePostRequest(
-        new Request(BASE_URL, {
+        new BaseRequest(BASE_URL, {
           body: `{"query":"from body"}`,
           method: "POST",
           headers: {
@@ -269,7 +348,7 @@ it(describePostTests, `application/json`, async (t) => {
     `should return InvalidBodyError when "variables" is not JSON object format`,
     async () => {
       const result = await validatePostRequest(
-        new Request(BASE_URL, {
+        new BaseRequest(BASE_URL, {
           body: `{"query":"query","variables":false}`,
           method: "POST",
           headers: {
@@ -288,7 +367,7 @@ it(describePostTests, `application/json`, async (t) => {
     `should return data when "variables" is null`,
     async () => {
       const result = await validatePostRequest(
-        new Request(BASE_URL, {
+        new BaseRequest(BASE_URL, {
           body: `{"query":"query","variables":null}`,
           method: "POST",
           headers: {
@@ -308,7 +387,7 @@ it(describePostTests, `application/json`, async (t) => {
     `should return data when "variables" is JSON object format`,
     async () => {
       const result = await validatePostRequest(
-        new Request(BASE_URL, {
+        new BaseRequest(BASE_URL, {
           body: `{"query":"query","variables":{"abc":[]}}`,
           method: "POST",
           headers: {
@@ -328,7 +407,7 @@ it(describePostTests, `application/json`, async (t) => {
     `should return InvalidBodyError when "operationName" is not string or not null`,
     async () => {
       const result = await validatePostRequest(
-        new Request(BASE_URL, {
+        new BaseRequest(BASE_URL, {
           body: `{"query":"query","operationName":0}`,
           method: "POST",
           headers: {
@@ -347,7 +426,7 @@ it(describePostTests, `application/json`, async (t) => {
     `should return data when "operationName" is string`,
     async () => {
       const result = await validatePostRequest(
-        new Request(BASE_URL, {
+        new BaseRequest(BASE_URL, {
           body: `{"query":"query","operationName":"subscription"}`,
           method: "POST",
           headers: {
@@ -373,7 +452,7 @@ it(
       "should return MissingBodyError when the message body is empty",
       async () => {
         const result = await validatePostRequest(
-          new Request(BASE_URL, {
+          new BaseRequest(BASE_URL, {
             method: "POST",
             headers: {
               "content-type": "application/graphql",
@@ -391,7 +470,7 @@ it(
       `should return data when the message body is exists`,
       async () => {
         const result = await validatePostRequest(
-          new Request(BASE_URL, {
+          new BaseRequest(BASE_URL, {
             body: "test",
             method: "POST",
             headers: {
@@ -407,7 +486,7 @@ it(
       `should return data when the message body is exists and content-type with charset`,
       async () => {
         const result = await validatePostRequest(
-          new Request(BASE_URL, {
+          new BaseRequest(BASE_URL, {
             body: "test",
             method: "POST",
             headers: {
@@ -425,7 +504,7 @@ it(
       async () => {
         const url = new URL("?query=test", BASE_URL);
         const result = await validatePostRequest(
-          new Request(url.toString(), {
+          new BaseRequest(url.toString(), {
             method: "POST",
             headers: {
               "content-type": "application/graphql",
@@ -441,7 +520,7 @@ it(
       async () => {
         const url = new URL("?query=from-query", BASE_URL);
         const result = await validatePostRequest(
-          new Request(url.toString(), {
+          new BaseRequest(url.toString(), {
             body: "from body",
             method: "POST",
             headers: {

@@ -1,4 +1,5 @@
 import {
+  BaseRequest,
   contentType,
   describe,
   expect,
@@ -30,15 +31,6 @@ const QueryRootType = new GraphQLObjectType({
     },
   },
 });
-
-class BaseRequest extends Request {
-  constructor(input: RequestInfo, init?: RequestInit) {
-    const headers = new Headers(init?.headers);
-    headers.append("accept", "application/graphql");
-
-    super(input, { ...init, headers });
-  }
-}
 
 /**
  * schema {
