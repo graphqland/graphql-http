@@ -51,28 +51,12 @@ export function validateRequest(req: Request): Promise<Result> | Result {
 }
 
 export function validateGetRequest(req: Request): Result {
-  if (!req.headers.has("accept")) {
-    return [
-      ,
-      new MissingHeaderError({
-        message: `The header is required. "Accept"`,
-        statusHint: Status.BadRequest,
-      }),
-    ];
+  const acceptResult = validateAcceptHeader(req);
+
+  if (acceptResult[1]) {
+    return acceptResult;
   }
 
-  const acceptResult = accepts(req, "application/graphql", "application/json");
-
-  if (!acceptResult) {
-    return [
-      ,
-      new InvalidHeaderError({
-        message:
-          `The header is invalid. "Accept" must include "application/graphql+json" or "application/json"`,
-        statusHint: Status.NotAcceptable,
-      }),
-    ];
-  }
   const url = new URL(req.url);
 
   const source = url.searchParams.get("query");
@@ -264,4 +248,36 @@ function isPlainObject(value: unknown): value is Record<PropertyKey, unknown> {
 
 function isStringOrNull(value: unknown): value is string | null {
   return isString(value) || isNull(value);
+}
+
+function validateAcceptHeader(
+  req: Request,
+): [data: string, err: undefined] | [
+  data: undefined,
+  err: GraphQLHTTPError,
+] {
+  if (!req.headers.has("accept")) {
+    return [
+      ,
+      new MissingHeaderError({
+        message: `The header is required. "Accept"`,
+        statusHint: Status.BadRequest,
+      }),
+    ];
+  }
+
+  const acceptResult = accepts(req, "application/graphql", "application/json");
+
+  if (!acceptResult) {
+    return [
+      ,
+      new InvalidHeaderError({
+        message:
+          `The header is invalid. "Accept" must include "application/graphql+json" or "application/json"`,
+        statusHint: Status.NotAcceptable,
+      }),
+    ];
+  }
+
+  return [acceptResult, undefined];
 }
