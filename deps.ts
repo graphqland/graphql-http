@@ -8,6 +8,7 @@ export {
   contentType,
   parseMediaType,
 } from "https://deno.land/std@0.147.0/media_types/mod.ts";
+export { accepts } from "https://deno.land/std@0.147.0/http/negotiation.ts";
 export {
   isNil,
   isNull,

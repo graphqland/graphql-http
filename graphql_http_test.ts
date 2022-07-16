@@ -31,6 +31,15 @@ const QueryRootType = new GraphQLObjectType({
   },
 });
 
+class BaseRequest extends Request {
+  constructor(input: RequestInfo, init?: RequestInit) {
+    const headers = new Headers(init?.headers);
+    headers.append("accept", "application/graphql");
+
+    super(input, { ...init, headers });
+  }
+}
+
 /**
  * schema {
  *   query: QueryRoot
@@ -70,9 +79,54 @@ const describeTests = describe("graphqlHttp");
 describe("HTTP method is GET", () => {
   it(
     describeTests,
+    `should return 400 when "Accept" header is not exists`,
+    async () => {
+      const res = await responser(
+        new Request(new URL(BASE_URL).toString()),
+      );
+
+      expect(res.status).toBe(Status.BadRequest);
+      expect(res.headers.get("content-type")).toEqual(
+        "application/json; charset=UTF-8",
+      );
+      await expect(res.json()).resolves.toEqual({
+        errors: [{ message: `The header is required. "Accept"` }],
+      });
+    },
+  );
+
+  it(
+    describeTests,
+    `should return 406 when "Accept" header does not include application/graphql or application/json`,
+    async () => {
+      const res = await responser(
+        new Request(queryString(BASE_URL, {}), {
+          headers: {
+            "accept": "plain/text",
+          },
+        }),
+      );
+
+      expect(res.status).toBe(Status.NotAcceptable);
+      expect(res.headers.get("content-type")).toEqual(
+        "application/json; charset=UTF-8",
+      );
+      await expect(res.json()).resolves.toEqual({
+        errors: [{
+          message:
+            `The header is invalid. "Accept" must include "application/graphql+json" or "application/json"`,
+        }],
+      });
+    },
+  );
+
+  it(
+    describeTests,
     "should return 400 when query string is not exists",
     async () => {
-      const res = await responser(new Request(new URL(BASE_URL).toString()));
+      const res = await responser(
+        new BaseRequest(new URL(BASE_URL).toString()),
+      );
 
       expect(res.status).toBe(Status.BadRequest);
       expect(res.headers.get("content-type")).toEqual(
@@ -89,7 +143,7 @@ describe("HTTP method is GET", () => {
       `?query={test}`,
       BASE_URL,
     );
-    const req = new Request(url.toString());
+    const req = new BaseRequest(url.toString());
     const res = await responser(req);
 
     expect(res.status).toBe(Status.OK);
@@ -106,7 +160,7 @@ describe("HTTP method is GET", () => {
       query: `query helloWho($who: String){ test(who: $who) }`,
       variables: `{"who":"Dolly"}`,
     });
-    const req = new Request(url);
+    const req = new BaseRequest(url);
     const res = await responser(req);
 
     expect(res.status).toBe(Status.OK);
@@ -131,7 +185,7 @@ describe("HTTP method is GET", () => {
       operationName: "helloWorld",
     });
 
-    const res = await responser(new Request(url));
+    const res = await responser(new BaseRequest(url));
     expect(res.status).toBe(Status.OK);
     await expect(res.json()).resolves.toEqual({
       data: {
@@ -150,7 +204,7 @@ describe("HTTP method is GET", () => {
     `,
     });
 
-    const res = await responser(new Request(url));
+    const res = await responser(new BaseRequest(url));
 
     expect(res.status).toEqual(Status.OK);
     await expect(res.json()).resolves.toEqual({
@@ -163,7 +217,7 @@ describe("HTTP method is GET", () => {
 
 describe("HTTP method is POST", () => {
   it("Allows POST with JSON encoding", async () => {
-    const req = new Request(BASE_URL, {
+    const req = new BaseRequest(BASE_URL, {
       body: JSON.stringify({ query: "{test}" }),
       method: "POST",
       headers: {
@@ -178,7 +232,7 @@ describe("HTTP method is POST", () => {
   });
 
   it("Allows sending a mutation via POST", async () => {
-    const req = new Request(BASE_URL, {
+    const req = new BaseRequest(BASE_URL, {
       body: JSON.stringify({
         query: "mutation TestMutation { writeTest { test } }",
       }),
@@ -197,7 +251,7 @@ describe("HTTP method is POST", () => {
   });
 
   it(`return with errors when "Content-Type" is not exists`, async () => {
-    const req = new Request(BASE_URL, {
+    const req = new BaseRequest(BASE_URL, {
       method: "POST",
     });
     const res = await responser(req);
@@ -210,7 +264,7 @@ describe("HTTP method is POST", () => {
   });
 
   it("return with errros when message body is invalid JSON format", async () => {
-    const req = new Request(BASE_URL, {
+    const req = new BaseRequest(BASE_URL, {
       method: "POST",
       headers: {
         "content-type": contentType(".json"),
@@ -231,7 +285,7 @@ describe("HTTP method is POST", () => {
     const url = queryString(BASE_URL, {
       query: `{test}`,
     });
-    const req = new Request(url, {
+    const req = new BaseRequest(url, {
       body: JSON.stringify({}),
       method: "POST",
       headers: {
@@ -246,7 +300,7 @@ describe("HTTP method is POST", () => {
   });
 
   it("should return 200 when body includes variables", async () => {
-    const req = new Request(BASE_URL, {
+    const req = new BaseRequest(BASE_URL, {
       body: JSON.stringify({
         query: "query helloWho($who: String){ test(who: $who) }",
         variables: { who: "Dolly" },

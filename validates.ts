@@ -1,4 +1,5 @@
 import {
+  accepts,
   isNil,
   isNull,
   isObject,
@@ -50,6 +51,28 @@ export function validateRequest(req: Request): Promise<Result> | Result {
 }
 
 export function validateGetRequest(req: Request): Result {
+  if (!req.headers.has("accept")) {
+    return [
+      ,
+      new MissingHeaderError({
+        message: `The header is required. "Accept"`,
+        statusHint: Status.BadRequest,
+      }),
+    ];
+  }
+
+  const acceptResult = accepts(req, "application/graphql", "application/json");
+
+  if (!acceptResult) {
+    return [
+      ,
+      new InvalidHeaderError({
+        message:
+          `The header is invalid. "Accept" must include "application/graphql+json" or "application/json"`,
+        statusHint: Status.NotAcceptable,
+      }),
+    ];
+  }
   const url = new URL(req.url);
 
   const source = url.searchParams.get("query");
