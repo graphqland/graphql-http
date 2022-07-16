@@ -243,6 +243,60 @@ it(describePostTests, `application/json`, async (t) => {
   );
 
   await t.step(
+    `should return error when header of "Content-Type" is not exists`,
+    async () => {
+      const result = await validatePostRequest(
+        new BaseRequest(BASE_URL, {
+          method: "POST",
+        }),
+      );
+      expect(result[0]).toBeUndefined();
+      expect(result[1]).toError(
+        MissingHeaderError,
+        `The header is required. "Content-Type"`,
+      );
+    },
+  );
+
+  await t.step(
+    `should return error when header of "Content-Type" does not contain "application/graphql" or "application/json"`,
+    async () => {
+      const result = await validatePostRequest(
+        new BaseRequest(BASE_URL, {
+          method: "POST",
+          headers: {
+            "content-type": contentType("txt"),
+          },
+        }),
+      );
+      expect(result[0]).toBeUndefined();
+      expect(result[1]).toError(
+        InvalidHeaderError,
+        `The header is invalid. "Content-Type" must be "application/json" or "application/graphql"`,
+      );
+    },
+  );
+
+  await t.step(
+    `should return error when header of "Content-Type" charset is not "UTF-8"`,
+    async () => {
+      const result = await validatePostRequest(
+        new BaseRequest(BASE_URL, {
+          method: "POST",
+          headers: {
+            "content-type": "application/graphql; charset=utf-16",
+          },
+        }),
+      );
+      expect(result[0]).toBeUndefined();
+      expect(result[1]).toError(
+        InvalidHeaderError,
+        `The header is invalid. Supported media type charset is "UTF-8".`,
+      );
+    },
+  );
+
+  await t.step(
     "should return InvalidBodyError when message body is invalid JSON format",
     async () => {
       const result = await validatePostRequest(

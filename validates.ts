@@ -113,8 +113,31 @@ export async function validatePostRequest(req: Request): Promise<Result> {
     ];
   }
 
-  const [mediaType] = parseMediaType(contentType);
-  // const charset = params["charset"] ? params["charset"].toLowerCase() : "utf-8";
+  const [mediaType, record = { charset: "UTF-8" }] = parseMediaType(
+    contentType,
+  );
+
+  if (!isSupportedMediaType(mediaType)) {
+    return [
+      ,
+      new InvalidHeaderError({
+        message:
+          `The header is invalid. "Content-Type" must be "application/json" or "application/graphql"`,
+        statusHint: Status.UnsupportedMediaType,
+      }),
+    ];
+  }
+  const charset = record.charset ? record.charset : "UTF-8";
+  if (charset.toUpperCase() !== "UTF-8") {
+    return [
+      ,
+      new InvalidHeaderError({
+        message:
+          `The header is invalid. Supported media type charset is "UTF-8".`,
+        statusHint: Status.UnsupportedMediaType,
+      }),
+    ];
+  }
 
   // // TODO:(miyauci) check the body already read.
   // const body = await req.text();
@@ -215,18 +238,7 @@ export async function validatePostRequest(req: Request): Promise<Result> {
       return [{ query }, undefined];
     }
 
-    // TODO:(miayuci) add 'application/x-www-form-urlencoded'
-
-    default: {
-      return [
-        ,
-        new InvalidHeaderError({
-          message:
-            `The header is invalid. "Content-Type" must be "application/json" or "application/graphql"`,
-          statusHint: Status.UnsupportedMediaType,
-        }),
-      ];
-    }
+      // TODO:(miayuci) add 'application/x-www-form-urlencoded'
   }
 }
 
@@ -285,4 +297,10 @@ function validateAcceptHeader(
   }
 
   return [acceptResult, undefined];
+}
+
+function isSupportedMediaType(
+  mediaType: string,
+): mediaType is "application/graphql" | "application/json" {
+  return ["application/graphql", "application/json"].includes(mediaType);
 }
