@@ -2,14 +2,18 @@ import { validatePlaygroundRequest, validateRequest } from "./validates.ts";
 import {
   contentType,
   ExecutionResult,
+  getOperationAST,
   graphql,
   GraphQLArgs,
   GraphQLError,
+  isString,
   JSON,
+  parse,
   PartialBy,
   RenderPageOptions,
   renderPlaygroundPage,
   Status,
+  tryCatch,
 } from "./deps.ts";
 
 export type Params =
@@ -89,6 +93,35 @@ export default function graphqlHttp(
 
     const { query: source, variableValues, operationName } = data;
 
+    const parseResult = tryCatch(() => parse(source));
+    if (!parseResult[0]) {
+      const graphqlError = resolveError(parseResult[1]);
+      const result: ExecutionResult = {
+        errors: [graphqlError],
+      };
+      return response(res(result, {
+        status: Status.BadRequest,
+      }));
+    }
+
+    const operationAST = getOperationAST(parseResult[0], operationName);
+
+    if (
+      req.method === "GET" && operationAST && operationAST.operation !== "query"
+    ) {
+      const graphqlError = resolveError(
+        `Invalid GraphQL operation. Can only perform a ${operationAST.operation} operation from a POST request.`,
+      );
+      const result: ExecutionResult = {
+        errors: [
+          graphqlError,
+        ],
+      };
+      return response(res(result, {
+        status: Status.MethodNotAllowed,
+      }));
+    }
+
     try {
       const result = await graphql({
         source,
@@ -133,6 +166,7 @@ function res(
 
 function resolveError(er: unknown): GraphQLError {
   if (er instanceof GraphQLError) return er;
+  if (isString(er)) return new GraphQLError(er);
 
   return er instanceof Error
     ? new GraphQLError(

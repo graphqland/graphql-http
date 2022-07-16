@@ -1,8 +1,10 @@
 export {
   type ExecutionResult,
+  getOperationAST,
   graphql,
   type GraphQLArgs,
   GraphQLError,
+  parse,
 } from "https://esm.sh/graphql@16.5.0";
 export {
   contentType,
@@ -29,3 +31,13 @@ export type PartialBy<T, K = keyof T> =
   Omit<T, K & keyof T> & Partial<Pick<T, K & keyof T>> extends infer U
     ? { [K in keyof U]: U[K] }
     : never;
+
+export function tryCatch<T>(
+  fn: () => T,
+): [data: T, err: undefined] | [data: undefined, err: unknown] {
+  try {
+    return [fn(), undefined];
+  } catch (er) {
+    return [, er];
+  }
+}

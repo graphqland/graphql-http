@@ -138,6 +138,56 @@ describe("HTTP method is GET", () => {
     },
   );
 
+  it(
+    describeTests,
+    `should return 405 when query is not "query"`,
+    async () => {
+      const res = await responser(
+        new BaseRequest(queryString(BASE_URL, {
+          query: "mutation { hello }",
+        })),
+      );
+
+      expect(res.status).toBe(Status.MethodNotAllowed);
+      expect(res.headers.get("content-type")).toEqual(
+        "application/json; charset=UTF-8",
+      );
+      await expect(res.json()).resolves.toEqual({
+        errors: [{
+          message:
+            `Invalid GraphQL operation. Can only perform a mutation operation from a POST request.`,
+        }],
+      });
+    },
+  );
+
+  it(
+    describeTests,
+    `should return 405 when operation is not "query"`,
+    async () => {
+      const res = await responser(
+        new BaseRequest(queryString(BASE_URL, {
+          query: `
+          query { hello }
+          mutation TestMutation { hello }
+          `,
+          operationName: "TestMutation",
+        })),
+      );
+
+      expect(res.status).toBe(Status.MethodNotAllowed);
+      expect(res.headers.get("content-type")).toEqual(
+        "application/json; charset=UTF-8",
+      );
+      await expect(res.json()).resolves.toEqual({
+        errors: [{
+          message:
+            `Invalid GraphQL operation. Can only perform a mutation operation from a POST request.`,
+        }],
+      });
+    },
+  );
+
   it("allows GET with query param", async () => {
     const url = new URL(
       `?query={test}`,
