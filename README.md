@@ -58,6 +58,27 @@ const handler: Handler = (req) => {
 serve(handler);
 ```
 
+## Spec
+
+This project is implemented in accordance with
+[GraphQL over HTTP Spec](https://graphql.github.io/graphql-over-http/).
+
+### Response Status
+
+The following response statuses may be returned. These are
+[Request errors](https://spec.graphql.org/draft/#sec-Errors.Request-errors) and
+[Field errors](https://spec.graphql.org/draft/#sec-Errors.Field-errors) and all
+statuses are `200` in case of Field errors.
+
+| Status | Condition                                                                                         |
+| ------ | ------------------------------------------------------------------------------------------------- |
+| 200    | If GraphQL is actually executed, even if it contains `Field errors`.                              |
+| 400    | A required parameter does not exist. Illegal format of parameter.                                 |
+| 405    | When a mutation operation is requested on GET request.                                            |
+| 406    | The client `Accept` HTTP header does not contain at least one of the supported media types.       |
+| 415    | The client `Content-type` HTTP header does not contain at least one of the supported media types. |
+| 500    | If the server encounters an unexpected error.                                                     |
+
 ## License
 
 Copyright © 2022-present [TomokiMiyauci](https://github.com/TomokiMiyauci).
