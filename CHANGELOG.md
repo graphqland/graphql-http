@@ -1,3 +1,11 @@
+# [1.0.0-beta.4](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.3...1.0.0-beta.4) (2022-07-15)
+
+
+### Bug Fixes
+
+* overwrite defalut header "content-type" to application/json ([5d1b75c](https://github.com/TomokiMiyauci/graphql-http/commit/5d1b75c5260823139a4c9127d98e3e1f8c5689b6))
+* when "query" parameter is not exist on POST, fallback from query string ([553c8a0](https://github.com/TomokiMiyauci/graphql-http/commit/553c8a0675232b3894435709d852469cb088f14c))
+
 # [1.0.0-beta.3](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.2...1.0.0-beta.3) (2022-07-14)
 
 
