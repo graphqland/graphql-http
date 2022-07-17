@@ -149,6 +149,30 @@ If you want `application/graphql+json` content, you must put
 
 Example: `Accept: application/graphql+json,application/json`.
 
+## Overwrite response
+
+`grpahqlHttp` creates a response according to the GraphQL over HTTP
+specification. You can customize this response.
+
+Example of adding a header:
+
+```ts
+import { graphqlHttp } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+import { buildSchema } from "https://esm.sh/graphql@$VERSION";
+
+const responser = graphqlHttp({
+  response: (res, ctx) => {
+    if (ctx.request.method === "GET") {
+      res.headers.set("Cache-Control", "max-age=604800");
+    }
+    return res;
+  },
+  schema: buildSchema(`type Query {
+    hello: String
+  }`),
+});
+```
+
 ## License
 
 Copyright © 2022-present [TomokiMiyauci](https://github.com/TomokiMiyauci).

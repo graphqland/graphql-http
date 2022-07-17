@@ -28,12 +28,38 @@ export type Params =
     /** A GraphQL schema from graphql-js. */
     schema: GraphQLSchema;
 
-    response?: (res: Response) => Response;
+    /** Overwrite actual response.
+     * ```ts
+     * import { graphqlHttp } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+     * import { buildSchema } from "https://esm.sh/graphql@$VERSION";
+     *
+     * const responser = graphqlHttp({
+     *   response: (res, ctx) => {
+     *     if (ctx.request.method === "GET") {
+     *       res.headers.set("Cache-Control", "max-age=604800");
+     *     }
+     *     return res;
+     *   },
+     *   schema: buildSchema(`type Query {
+     *     hello: String
+     *   }`),
+     * });
+     * ```
+     */
+    response?: (res: Response, ctx: ResponseContext) => Response;
 
+    /** Whether enabled graphql playground or not. */
     playground?: boolean;
 
+    /** graphql playground options. */
     playgroundOptions?: RenderPageOptions;
   };
+
+/** Response context */
+export type ResponseContext = {
+  /** Actual `Request` Object */
+  request: Request;
+};
 
 /** Make a GraphQL `Response` Object that validate to `Request` Object.
  * @throws AggregateError - When graphql schema validation is fail.
@@ -87,6 +113,7 @@ export default function graphqlHttp(
   }
 
   return async (req: Request): Promise<Response> => {
+    const responseCtx: ResponseContext = { request: req };
     const mediaType = getMediaType(req);
     const preferContentType = withCharset(mediaType);
 
@@ -102,6 +129,7 @@ export default function graphqlHttp(
               "content-type": contentType("text/html"),
             },
           }),
+          responseCtx,
         );
       }
 
@@ -112,7 +140,7 @@ export default function graphqlHttp(
         contentType: preferContentType,
       });
 
-      return response(res);
+      return response(res, responseCtx);
     }
 
     const { query: source, variableValues, operationName } = data;
@@ -134,7 +162,7 @@ export default function graphqlHttp(
         contentType: preferContentType,
       });
 
-      return response(res);
+      return response(res, responseCtx);
     }
 
     const documentAST = parseResult[0];
@@ -156,7 +184,7 @@ export default function graphqlHttp(
         contentType: preferContentType,
       });
 
-      return response(res);
+      return response(res, responseCtx);
     }
 
     const validationErrors = validate(schema, documentAST, specifiedRules);
@@ -168,7 +196,7 @@ export default function graphqlHttp(
         contentType: preferContentType,
       });
 
-      return response(res);
+      return response(res, responseCtx);
     }
 
     const [executionResult, executionErrors] = await tryCatch(() =>
@@ -189,7 +217,7 @@ export default function graphqlHttp(
             contentType: preferContentType,
           });
 
-          return response(res);
+          return response(res, responseCtx);
         }
 
         case "application/graphql+json": {
@@ -201,7 +229,7 @@ export default function graphqlHttp(
             contentType: preferContentType,
           });
 
-          return response(res);
+          return response(res, responseCtx);
         }
       }
     }
@@ -214,7 +242,7 @@ export default function graphqlHttp(
       contentType: preferContentType,
     });
 
-    return response(res);
+    return response(res, responseCtx);
   };
 }
 
