@@ -105,7 +105,7 @@ Since these are client-side errors, the appropriate `4XX` status is returned.
 #### Request errors
 
 Request errors are defined at
-[GraphQL Spec 7.Response - Request errors](https://spec.graphql.org/draft/#sec-Errors.Request-errors).
+[[GraphQL Spec] 7.Response - Request errors](https://spec.graphql.org/draft/#sec-Errors.Request-errors).
 
 Note here that the status code may be different depending on the Content-Type.
 
@@ -114,7 +114,9 @@ Note here that the status code may be different depending on the Content-Type.
 If Content-Type is `application/json`, all results of GraphQL Requests including
 GraphQL validation will be treated as `200` status.
 
-See the GraphQL HTTP Spec for the reason for this.
+See the
+[[GraphQL over HTTP 6.4.1] application/json#Note](https://graphql.github.io/graphql-over-http/draft/#note-a7d14)
+for the reason for this.
 
 ##### application/graphql+json
 
@@ -127,7 +129,7 @@ validation) then the response with 400 status code.
 #### Field errors
 
 Field errors are defined at
-[GraphQL Spec 7.Response - Field errors](https://spec.graphql.org/draft/#sec-Errors.Field-errors).
+[[GraphQL Spec 7.Response] - Field errors](https://spec.graphql.org/draft/#sec-Errors.Field-errors).
 
 Even if a Field error occurs, it will always be a `200` status code.
 
