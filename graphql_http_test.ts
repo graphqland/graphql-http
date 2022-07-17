@@ -1,5 +1,6 @@
 import {
   BaseRequest,
+  buildSchema,
   contentType,
   describe,
   expect,
@@ -68,6 +69,14 @@ const responser = graphqlHttp({
 const BASE_URL = "https://test.test";
 
 const describeTests = describe("graphqlHttp");
+
+it("should throw error when validation of schema is fail", () => {
+  expect(() =>
+    graphqlHttp({
+      schema: buildSchema(`type Test { hello: String }`),
+    })
+  ).toThrow("Schema validation error");
+});
 
 describe("HTTP method is GET", () => {
   it(

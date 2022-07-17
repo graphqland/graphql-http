@@ -21,7 +21,6 @@ import {
   validate,
   validateSchema,
 } from "./deps.ts";
-import { MIME_TYPE } from "./constants.ts";
 
 export type Params =
   & PartialBy<Omit<GraphQLArgs, "schema">, "source">
@@ -81,12 +80,16 @@ export default function graphqlHttp(
     ...rest
   }: Readonly<Params>,
 ): (req: Request) => Promise<Response> {
+  const validateSchemaResult = validateSchema(schema);
+  if (validateSchemaResult.length) {
+    throw new AggregateError(validateSchemaResult, "Schema validation error");
+  }
+
   return async (req: Request): Promise<Response> => {
     const mediaType = getMediaType(req);
     const preferContentType = withCharset(mediaType);
 
     const [data, err] = await validateRequest(req);
-
     if (err) {
       if (playground && validatePlaygroundRequest(req)) {
         const playground = renderPlaygroundPage(playgroundOptions);
@@ -113,6 +116,12 @@ export default function graphqlHttp(
 
     const { query: source, variableValues, operationName } = data;
 
+    // When "Content-Type" is `application/json`, all Request error should be `200` status code. @see https://graphql.github.io/graphql-over-http/draft/#sec-application-json
+    // Validation error is Request error. @see https://spec.graphql.org/draft/#sec-Errors.Request-errors
+    const getResponseErrorStatus = (): number => {
+      return mediaType === "application/json" ? Status.OK : Status.BadRequest;
+    };
+
     const parseResult = tryCatchSync(() => parse(source));
     if (!parseResult[0]) {
       const graphqlError = resolveError(parseResult[1]);
@@ -120,7 +129,7 @@ export default function graphqlHttp(
         errors: [graphqlError],
       };
       const res = createResponse(result, {
-        status: Status.BadRequest,
+        status: getResponseErrorStatus(),
         contentType: preferContentType,
       });
 
@@ -149,28 +158,12 @@ export default function graphqlHttp(
       return response(res);
     }
 
-    const validateSchemaResult = validateSchema(schema);
-
-    if (validateSchemaResult.length) {
-      const result: ExecutionResult = { errors: validateSchemaResult };
-      const res = createResponse(result, {
-        status: Status.InternalServerError,
-        contentType: preferContentType,
-      });
-
-      return response(res);
-    }
-
     const validationErrors = validate(schema, documentAST, specifiedRules);
 
     if (validationErrors.length > 0) {
       const result: ExecutionResult = { errors: validationErrors };
       const res = createResponse(result, {
-        // When "Content-Type" is `application/json`, all Request error should be `200` status code. @see https://graphql.github.io/graphql-over-http/draft/#sec-application-json
-        // Validation error is Request error. @see https://spec.graphql.org/draft/#sec-Errors.Request-errors
-        status: mediaType === "application/json"
-          ? Status.OK
-          : Status.BadRequest,
+        status: getResponseErrorStatus(),
         contentType: preferContentType,
       });
 
@@ -233,12 +226,12 @@ function createResponse(
   const [resultStr, err] = JSON.stringify(result);
 
   if (err) {
-    const grqphqlError = resolveError(err);
-    const result: ExecutionResult = { errors: [grqphqlError] };
+    const graphqlError = resolveError(err);
+    const result: ExecutionResult = { errors: [graphqlError] };
     const [body] = JSON.stringify(result);
     return new Response(body, {
       headers: {
-        "content-type": MIME_TYPE,
+        "content-type": contentType,
       },
       status: Status.InternalServerError,
     });
