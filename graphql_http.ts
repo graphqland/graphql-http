@@ -36,6 +36,7 @@ export type Params =
   };
 
 /** Make a GraphQL `Response` Object that validate to `Request` Object.
+ * @throws AggregateError - When graphql schema validation is fail.
  * ```ts
  * import { graphqlHttp } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
  * import {
