@@ -1,3 +1,18 @@
+# [1.0.0-beta.6](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.5...1.0.0-beta.6) (2022-07-17)
+
+
+### Bug Fixes
+
+* fix typo "application/graphql" to "application/graphql+json" ([78e592e](https://github.com/TomokiMiyauci/graphql-http/commit/78e592ebdc30933c51df187017e82e56c429040c))
+* treat the default accept header value as `application/json` ([1e65348](https://github.com/TomokiMiyauci/graphql-http/commit/1e6534836250578a961175ff457d3155154fa5e3))
+
+
+### Features
+
+* add Accept header validation on POST method ([04f5da8](https://github.com/TomokiMiyauci/graphql-http/commit/04f5da89f093f29c68133f396112ae8db06b0c63))
+* add validation for "Content-Type" charset on POST method ([12741a3](https://github.com/TomokiMiyauci/graphql-http/commit/12741a345f51c2d722fc29a9be72d76c38aaaa74))
+* add validation step for graphql schema and graphql itself ([30a3e69](https://github.com/TomokiMiyauci/graphql-http/commit/30a3e69e4c342901e3fc7e53050f30a238788f05))
+
 # [1.0.0-beta.5](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.4...1.0.0-beta.5) (2022-07-16)
 
 
