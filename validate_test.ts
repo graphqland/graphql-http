@@ -48,19 +48,6 @@ it(
 
 it(
   describeGetTests,
-  `should return error when header of "Accept" is not exists`,
-  () => {
-    const result = validateGetRequest(new Request(BASE_URL));
-    expect(result[0]).toBeUndefined();
-    expect(result[1]).toError(
-      MissingHeaderError,
-      `The header is required. "Accept"`,
-    );
-  },
-);
-
-it(
-  describeGetTests,
   `should return error when header of "Accept" does not contain "application/graphql+json" or "application/json"`,
   () => {
     const result = validateGetRequest(
@@ -207,22 +194,6 @@ it(
 );
 
 it(describePostTests, `application/json`, async (t) => {
-  await t.step(
-    `should return error when header of "Accept" is not exists`,
-    async () => {
-      const result = await validatePostRequest(
-        new Request(BASE_URL, {
-          method: "POST",
-        }),
-      );
-      expect(result[0]).toBeUndefined();
-      expect(result[1]).toError(
-        MissingHeaderError,
-        `The header is required. "Accept"`,
-      );
-    },
-  );
-
   await t.step(
     `should return error when header of "Accept" does not contain "application/graphql" or "application/json"`,
     async () => {

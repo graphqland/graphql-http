@@ -4,7 +4,11 @@ export {
   graphql,
   type GraphQLArgs,
   GraphQLError,
+  GraphQLSchema,
   parse,
+  specifiedRules,
+  validate,
+  validateSchema,
 } from "https://esm.sh/graphql@16.5.0";
 export {
   contentType,
@@ -32,11 +36,21 @@ export type PartialBy<T, K = keyof T> =
     ? { [K in keyof U]: U[K] }
     : never;
 
-export function tryCatch<T>(
+export function tryCatchSync<T>(
   fn: () => T,
 ): [data: T, err: undefined] | [data: undefined, err: unknown] {
   try {
     return [fn(), undefined];
+  } catch (er) {
+    return [, er];
+  }
+}
+
+export async function tryCatch<T>(
+  fn: () => Promise<T> | T,
+): Promise<[data: T, err: undefined] | [data: undefined, err: unknown]> {
+  try {
+    return [await fn(), undefined];
   } catch (er) {
     return [, er];
   }

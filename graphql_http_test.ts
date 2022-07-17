@@ -84,7 +84,7 @@ describe("HTTP method is GET", () => {
 
       expect(res.status).toBe(Status.NotAcceptable);
       expect(res.headers.get("content-type")).toEqual(
-        MIME_TYPE,
+        contentType(".json"),
       );
       await expect(res.json()).resolves.toEqual({
         errors: [{
@@ -256,7 +256,7 @@ describe("HTTP method is POST", () => {
 
       expect(res.status).toBe(Status.NotAcceptable);
       expect(res.headers.get("content-type")).toEqual(
-        MIME_TYPE,
+        contentType(".json"),
       );
       await expect(res.json()).resolves.toEqual({
         errors: [{
