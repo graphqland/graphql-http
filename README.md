@@ -63,12 +63,19 @@ serve(handler);
 This project is implemented in accordance with
 [GraphQL over HTTP Spec](https://graphql.github.io/graphql-over-http/).
 
+### Request Parameters
+
+A GraphQL-over-HTTP request is formed of the following parameters:
+
+| Name          |      Required      | Description                                                                                                                |
+| ------------- | :----------------: | -------------------------------------------------------------------------------------------------------------------------- |
+| query         | :white_check_mark: | A Document containing GraphQL Operations and Fragments to execute. Must be a string.                                       |
+| operationName |         -          | The name of the Operation in the Document to execute. <br>GET: If present, must be a string.                               |
+| variables     |         -          | Values for any Variables defined by the Operation. <br> GET: If present, must be represented as a URL-encoded JSON string. |
+
 ### Response Status
 
-The following response statuses may be returned. These are
-[Request errors](https://spec.graphql.org/draft/#sec-Errors.Request-errors) and
-[Field errors](https://spec.graphql.org/draft/#sec-Errors.Field-errors) and all
-statuses are `200` in case of Field errors.
+The following responses may be returned.
 
 | Status | Condition                                                                                         |
 | ------ | ------------------------------------------------------------------------------------------------- |
@@ -78,6 +85,67 @@ statuses are `200` in case of Field errors.
 | 406    | The client `Accept` HTTP header does not contain at least one of the supported media types.       |
 | 415    | The client `Content-type` HTTP header does not contain at least one of the supported media types. |
 | 500    | If the server encounters an unexpected error.                                                     |
+
+Below are the specific conditions under which each may occur. Errors are
+classified into four major categories.
+
+- HTTP Request errors
+- (GraphQL) Request errors
+- (GraphQL) Field errors
+- Unknown errors
+
+#### HTTP Request errors
+
+HTTP Request errors are errors in the http protocol. This refers to errors that
+can occur between HTTP and GraphQL, such as missing/incorrect values for
+required parameters, missing/incorrect values for required headers, etc.
+
+Since these are client-side errors, the appropriate `4XX` status is returned.
+
+#### Request errors
+
+Request errors are defined at
+[GraphQL Spec 7.Response - Request errors](https://spec.graphql.org/draft/#sec-Errors.Request-errors).
+
+Note here that the status code may be different depending on the Content-Type.
+
+##### application/json
+
+If Content-Type is `application/json`, all results of GraphQL Requests including
+GraphQL validation will be treated as `200` status.
+
+See the GraphQL HTTP Spec for the reason for this.
+
+##### application/graphql+json
+
+If Content-Type is `application/graphql+json`, it is possible to respond with a
+status code other than `200` depending on the result of the GraphQL Request.
+
+If the GraphQL request is invalid (e.g. it is malformed, or does not pass
+validation) then the response with 400 status code.
+
+#### Field errors
+
+Field errors are defined at
+[GraphQL Spec 7.Response - Field errors](https://spec.graphql.org/draft/#sec-Errors.Field-errors).
+
+Even if a Field error occurs, it will always be a `200` status code.
+
+#### Unknown errors
+
+If an error other than the above occurs on the server side, a `500` status code
+will be responded.
+
+#### Upgrade to application/graphql+json
+
+As you may have noticed, `application/graphql+json` represents a more accurate
+semantics response.
+
+If you want `application/graphql+json` content, you must put
+`application/graphql+json` as a higher priority than `application/json` in the
+`Accept` header.
+
+Example: `Accept: application/graphql+json,application/json`.
 
 ## License
 
