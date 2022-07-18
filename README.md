@@ -5,6 +5,16 @@
 
 GraphQL on HTTP middleware with built-in validations and GraphQL playground
 
+## Features
+
+- [GraphQL over HTTP Spec](https://graphql.github.io/graphql-over-http/)
+  compliant
+- `application/graphql+json` support
+- Lean interface, tiny using [std](https://deno.land/std/http) and graphql
+  public libraries
+- Built-in GraphQL playground
+- Universal
+
 ## What
 
 It provides GraphQL on HTTP middleware that can be embedded in any server.
@@ -145,6 +155,17 @@ If you want `application/graphql+json` content, you must put
 `Accept` header.
 
 Example: `Accept: application/graphql+json,application/json`.
+
+## application/graphql+json vs application/json
+
+Response status
+
+|                                | application/graphql+json | application/json |
+| ------------------------------ | ------------------------ | ---------------- |
+| HTTP Request error             | 4XX(eg.406, 415)         | 4XX              |
+| GraphQL request error          | 400                      | 200              |
+| GraphQL field error            | 200                      | 200              |
+| Unknown(Internal server) error | 5XX                      | 5XX              |
 
 ## Overwrite response
 
