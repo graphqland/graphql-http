@@ -3,12 +3,12 @@ import { BuildOptions } from "https://deno.land/x/dnt@0.28.0/mod.ts";
 export const makeOptions = (version: string): BuildOptions => ({
   test: false,
   shims: {
-    deno: false,
+    deno: true,
   },
   compilerOptions: {
     lib: ["dom", "es2022"],
   },
-  typeCheck: true,
+  typeCheck: false,
   entryPoints: ["./mod.ts"],
   outDir: "./npm",
   package: {
