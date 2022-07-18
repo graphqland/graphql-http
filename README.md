@@ -200,6 +200,10 @@ Make a GraphQL `Response` Object that validate to `Request` Object.
 
 - `AggregateError` - When graphql schema validation is fail.
 
+## Recipes
+
+- [std/http](./examples/std_http/README.md)
+
 ## License
 
 Copyright © 2022-present [TomokiMiyauci](https://github.com/TomokiMiyauci).
