@@ -203,6 +203,7 @@ Make a GraphQL `Response` Object that validate to `Request` Object.
 ## Recipes
 
 - [std/http](./examples/std_http/README.md)
+- [fresh](./examples/fresh/README.md)
 
 ## License
 
