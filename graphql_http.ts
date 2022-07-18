@@ -1,6 +1,7 @@
 import { validatePlaygroundRequest, validateRequest } from "./validates.ts";
 import {
   accepts,
+  buildSchema,
   contentType,
   ExecutionResult,
   getOperationAST,
@@ -26,7 +27,7 @@ export type Params =
   & PartialBy<Omit<GraphQLArgs, "schema">, "source">
   & {
     /** A GraphQL schema from graphql-js. */
-    schema: GraphQLSchema;
+    schema: GraphQLSchema | string;
 
     /** Overwrite actual response.
      * ```ts
@@ -62,7 +63,11 @@ export type ResponseContext = {
 };
 
 /** Make a GraphQL `Response` Object that validate to `Request` Object.
- * @throws AggregateError - When graphql schema validation is fail.
+ * @throws {@link AggregateError}
+ * When graphql schema validation is fail.
+ *
+ * @throws {@link GraphQLError}
+ * When schema building is fail.
  * ```ts
  * import { graphqlHttp } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
  * import {
@@ -72,12 +77,10 @@ export type ResponseContext = {
  * } from "https://deno.land/std@$VERSION/http/mod.ts";
  * import { buildSchema } from "https://esm.sh/graphql@$VERSION";
  *
- * const schema = `type Query {
- *   hello: String!
- * }
- * `;
  * const graphqlResponse = graphqlHttp({
- *   schema: buildSchema(schema),
+ *   schema: `type Query {
+ *     hello: String!
+ *   }`,
  *   rootValue: {
  *     hello: () => "world",
  *   },
@@ -103,11 +106,19 @@ export default function graphqlHttp(
     response = (res) => res,
     playground,
     playgroundOptions = { endpoint: "/graphql" },
-    schema,
+    schema: _schema,
     ...rest
   }: Readonly<Params>,
 ): (req: Request) => Promise<Response> {
-  const validateSchemaResult = validateSchema(schema);
+  if (isString(_schema)) {
+    try {
+      _schema = buildSchema(_schema);
+    } catch (e) {
+      throw e as GraphQLError;
+    }
+  }
+
+  const validateSchemaResult = validateSchema(_schema);
   if (validateSchemaResult.length) {
     throw new AggregateError(validateSchemaResult, "Schema validation error");
   }
@@ -119,6 +130,7 @@ export default function graphqlHttp(
   };
 
   async function process(req: Request): Promise<[Response, ResponseContext]> {
+    const schema = _schema as GraphQLSchema;
     const responseCtx: ResponseContext = { request: req };
     const mediaType = getMediaType(req);
     const preferContentType = withCharset(mediaType);

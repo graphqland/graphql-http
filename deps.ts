@@ -1,4 +1,5 @@
 export {
+  buildSchema,
   type ExecutionResult,
   getOperationAST,
   graphql,

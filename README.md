@@ -32,12 +32,10 @@ import {
 } from "https://deno.land/std@$VERSION/http/mod.ts";
 import { buildSchema } from "https://esm.sh/graphql@$VERSION";
 
-const schema = `type Query {
-  hello: String!
-}
-`;
 const graphqlResponse = graphqlHttp({
-  schema: buildSchema(schema),
+  schema: `type Query {
+    hello: String!
+  }`,
   rootValue: {
     hello: () => "world",
   },
