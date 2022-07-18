@@ -1,3 +1,11 @@
+# [1.0.0-beta.7](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.6...1.0.0-beta.7) (2022-07-17)
+
+
+### Features
+
+* add custom request function to context ([c3ee404](https://github.com/TomokiMiyauci/graphql-http/commit/c3ee404bcb46eccbc127327e37c993f60ebeb523))
+* add throwing error when validation of schema error ([0ddbf08](https://github.com/TomokiMiyauci/graphql-http/commit/0ddbf081a2972d6afe39f2de704521cdb9609b75))
+
 # [1.0.0-beta.6](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.5...1.0.0-beta.6) (2022-07-17)
 
 
