@@ -33,9 +33,9 @@ import {
 import { buildSchema } from "https://esm.sh/graphql@$VERSION";
 
 const graphqlResponse = graphqlHttp({
-  schema: `type Query {
+  schema: buildSchema(`type Query {
     hello: String!
-  }`,
+  }`),
   rootValue: {
     hello: () => "world",
   },
@@ -47,7 +47,6 @@ const handler: Handler = (req) => {
   if (pathname === "/graphql") {
     return graphqlResponse(req);
   }
-
   return new Response("Not Found", {
     status: Status.NotFound,
   });
@@ -170,6 +169,36 @@ const responser = graphqlHttp({
   }`),
 });
 ```
+
+## API
+
+### graphqlHttp
+
+Make a GraphQL `Response` Object that validate to `Request` Object.
+
+#### Parameters
+
+| Name              |     Required / Default     | Description                                                                                                                                                                                                                                                                            |
+| ----------------- | :------------------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| schema            |     :white_check_mark:     | `GraphQLSchema`<br>The GraphQL type system to use when validating and executing a query.                                                                                                                                                                                               |
+| source            |             -              | `Source` &#124; `string`<br>A GraphQL language formatted string representing the requested operation.                                                                                                                                                                                  |
+| rootValue         |             -              | `unknown`<br>The value provided as the first argument to resolver functions on the top level type (e.g. the query object type).                                                                                                                                                        |
+| contextValue      |             -              | `unknown`<br>The context value is provided as an argument to resolver functions after field arguments. It is used to pass shared information useful at any point during executing this query, for example the currently logged in user and connections to databases or other services. |
+| variableValues    |             -              | `<{ readonly [variable: string: unknown; }>` &#124; `null` <br>A mapping of variable name to runtime value to use for all variables defined in the requestString.                                                                                                                      |
+| operationName     |             -              | `string` &#124; `null`<br>The name of the operation to use if requestString contains multiple possible operations. Can be omitted if requestString contains only one operation.                                                                                                        |
+| fieldResolver     |             -              | `GraphQLFieldResolver<any, any>` &#124; `null`<br>A resolver function to use when one is not provided by the schema. If not provided, the default field resolver is used (which looks for a value or method on the source value with the field's name).                                |
+| typeResolver      |             -              | `GraphQLTypeResolver<any, any>` &#124; `null`<br>A type resolver function to use when none is provided by the schema. If not provided, the default type resolver is used (which looks for a `__typename` field or alternatively calls the `isTypeOf` method).                          |
+| response          |             -              | `(req: Request, ctx: RequestContext) =>` `Promise<Response>` &#124; `Response`<br> Overwrite actual response.                                                                                                                                                                          |
+| playground        |             -              | `boolean`<br>Whether enabled [graphql-playground](https://github.com/graphql/graphql-playground) or not.                                                                                                                                                                               |
+| playgroundOptions | `{ endpoint: "/graphql" }` | `RenderPageOptions`<br> [graphql-playground](https://github.com/graphql/graphql-playground) options.                                                                                                                                                                                   |
+
+### ReturnType
+
+`(req: Request) => Promise<Response>`
+
+### Throws
+
+- `AggregateError` - When graphql schema validation is fail.
 
 ## License
 

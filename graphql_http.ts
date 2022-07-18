@@ -1,14 +1,12 @@
 import { validatePlaygroundRequest, validateRequest } from "./validates.ts";
 import {
   accepts,
-  buildSchema,
   contentType,
   ExecutionResult,
   getOperationAST,
   graphql,
   GraphQLArgs,
   GraphQLError,
-  GraphQLSchema,
   isString,
   JSON,
   parse,
@@ -24,11 +22,8 @@ import {
 } from "./deps.ts";
 
 export type Params =
-  & PartialBy<Omit<GraphQLArgs, "schema">, "source">
+  & PartialBy<GraphQLArgs, "source">
   & {
-    /** A GraphQL schema from graphql-js. */
-    schema: GraphQLSchema | string;
-
     /** Overwrite actual response.
      * ```ts
      * import { graphqlHttp } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
@@ -47,27 +42,33 @@ export type Params =
      * });
      * ```
      */
-    response?: (res: Response, ctx: ResponseContext) => Response;
+    response?: (
+      res: Response,
+      ctx: RequestContext,
+    ) => Promise<Response> | Response;
 
-    /** Whether enabled graphql playground or not. */
+    /** Whether enabled [graphql-playground](https://github.com/graphql/graphql-playground) or not. */
     playground?: boolean;
 
-    /** graphql playground options. */
+    /** [graphql-playground](https://github.com/graphql/graphql-playground) options.
+     * @default `{ endpoint: "/graphql" }`
+     */
     playgroundOptions?: RenderPageOptions;
   };
 
-/** Response context */
-export type ResponseContext = {
+/** Request context */
+export type RequestContext = {
   /** Actual `Request` Object */
   request: Request;
+
+  /** Whether the request is to playground or not. */
+  playground: boolean;
 };
 
 /** Make a GraphQL `Response` Object that validate to `Request` Object.
  * @throws {@link AggregateError}
  * When graphql schema validation is fail.
  *
- * @throws {@link GraphQLError}
- * When schema building is fail.
  * ```ts
  * import { graphqlHttp } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
  * import {
@@ -78,9 +79,9 @@ export type ResponseContext = {
  * import { buildSchema } from "https://esm.sh/graphql@$VERSION";
  *
  * const graphqlResponse = graphqlHttp({
- *   schema: `type Query {
+ *   schema: buildSchema(`type Query {
  *     hello: String!
- *   }`,
+ *   }`),
  *   rootValue: {
  *     hello: () => "world",
  *   },
@@ -92,7 +93,6 @@ export type ResponseContext = {
  *   if (pathname === "/graphql") {
  *     return graphqlResponse(req);
  *   }
- *
  *   return new Response("Not Found", {
  *     status: Status.NotFound,
  *   });
@@ -106,19 +106,11 @@ export default function graphqlHttp(
     response = (res) => res,
     playground,
     playgroundOptions = { endpoint: "/graphql" },
-    schema: _schema,
+    schema,
     ...rest
   }: Readonly<Params>,
 ): (req: Request) => Promise<Response> {
-  if (isString(_schema)) {
-    try {
-      _schema = buildSchema(_schema);
-    } catch (e) {
-      throw e as GraphQLError;
-    }
-  }
-
-  const validateSchemaResult = validateSchema(_schema);
+  const validateSchemaResult = validateSchema(schema);
   if (validateSchemaResult.length) {
     throw new AggregateError(validateSchemaResult, "Schema validation error");
   }
@@ -129,9 +121,8 @@ export default function graphqlHttp(
     return response(...result);
   };
 
-  async function process(req: Request): Promise<[Response, ResponseContext]> {
-    const schema = _schema as GraphQLSchema;
-    const responseCtx: ResponseContext = { request: req };
+  async function process(req: Request): Promise<[Response, RequestContext]> {
+    const requestCtx: RequestContext = { request: req, playground: false };
     const mediaType = getMediaType(req);
     const preferContentType = withCharset(mediaType);
 
@@ -143,7 +134,7 @@ export default function graphqlHttp(
           status: Status.OK,
           headers: { "content-type": contentType("text/html") },
         });
-        return [res, responseCtx];
+        return [res, { ...requestCtx, playground: true }];
       }
 
       const result = createResult(err);
@@ -152,7 +143,7 @@ export default function graphqlHttp(
         contentType: preferContentType,
       });
 
-      return [res, responseCtx];
+      return [res, requestCtx];
     }
     const { query: source, variableValues, operationName } = data;
 
@@ -165,7 +156,7 @@ export default function graphqlHttp(
         contentType: preferContentType,
       });
 
-      return [res, responseCtx];
+      return [res, requestCtx];
     }
     const documentAST = parseResult[0];
     const operationAST = getOperationAST(documentAST, operationName);
@@ -180,7 +171,7 @@ export default function graphqlHttp(
         contentType: preferContentType,
       });
 
-      return [res, responseCtx];
+      return [res, requestCtx];
     }
     const validationErrors = validate(schema, documentAST, specifiedRules);
     if (validationErrors.length > 0) {
@@ -190,7 +181,7 @@ export default function graphqlHttp(
         contentType: preferContentType,
       });
 
-      return [res, responseCtx];
+      return [res, requestCtx];
     }
     const [executionResult, executionErrors] = await tryCatch(() =>
       graphql({
@@ -209,7 +200,7 @@ export default function graphqlHttp(
             contentType: preferContentType,
           });
 
-          return [res, responseCtx];
+          return [res, requestCtx];
         }
 
         case "application/graphql+json": {
@@ -221,7 +212,7 @@ export default function graphqlHttp(
             contentType: preferContentType,
           });
 
-          return [res, responseCtx];
+          return [res, requestCtx];
         }
       }
     }
@@ -231,7 +222,7 @@ export default function graphqlHttp(
       status: Status.InternalServerError,
       contentType: preferContentType,
     });
-    return [res, responseCtx];
+    return [res, requestCtx];
   }
 }
 

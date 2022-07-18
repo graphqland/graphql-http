@@ -70,14 +70,6 @@ const BASE_URL = "https://test.test";
 
 const describeTests = describe("graphqlHttp");
 
-it("should throw error when schema building is fail", () => {
-  expect(() =>
-    graphqlHttp({
-      schema: ``,
-    })
-  ).toThrow();
-});
-
 it("should throw error when validation of schema is fail", () => {
   expect(() =>
     graphqlHttp({
