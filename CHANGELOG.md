@@ -1,3 +1,15 @@
+# [1.0.0-beta.8](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.7...1.0.0-beta.8) (2022-07-18)
+
+
+### Bug Fixes
+
+* change schema types to remove `string` types ([8df3508](https://github.com/TomokiMiyauci/graphql-http/commit/8df35081cd2820ca545cb4576024b1c16b862990))
+
+
+### Features
+
+* accept schema as `string`, build schema with error handling ([3b81be1](https://github.com/TomokiMiyauci/graphql-http/commit/3b81be11b70e47d696870beccb29d0fc5dc62a68))
+
 # [1.0.0-beta.7](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.6...1.0.0-beta.7) (2022-07-17)
 
 
