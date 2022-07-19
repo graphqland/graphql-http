@@ -12,7 +12,7 @@ GraphQL on HTTP middleware with built-in validations and GraphQL playground
 - `application/graphql+json` support
 - Lean interface, tiny using [std](https://deno.land/std/http) and graphql
   public libraries
-- Built-in GraphQL playground
+- Built-in [graphql-playground](https://github.com/graphql/graphql-playground)
 - Universal
 
 ## What
@@ -69,6 +69,10 @@ serve(handler);
 
 This project is implemented in accordance with
 [GraphQL over HTTP Spec](https://graphql.github.io/graphql-over-http/).
+
+We are actively implementing
+[IETF RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119) `SHOULD` and
+`RECOMMENDED`.
 
 ### Request Parameters
 
@@ -190,6 +194,18 @@ const responser = graphqlHttp({
   }`),
 });
 ```
+
+## Where the subscription?
+
+Unfortunately, there is currently no specification for `subscription` and it is
+not implemented.
+
+You can refer to other projects' implementations using
+[SSE](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events)
+or [Websocket](https://developer.mozilla.org/en-US/docs/Web/API/Websockets_API).
+
+- [graphql-ws](https://github.com/enisdenjo/graphql-ws)
+- [subscriptions-transport-ws](https://github.com/apollographql/subscriptions-transport-ws)
 
 ## API
 
