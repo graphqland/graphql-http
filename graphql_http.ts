@@ -2,9 +2,9 @@ import { validatePlaygroundRequest, validateRequest } from "./validates.ts";
 import {
   accepts,
   contentType,
+  execute,
   ExecutionResult,
   getOperationAST,
-  graphql,
   GraphQLArgs,
   GraphQLError,
   isString,
@@ -183,12 +183,14 @@ export default function graphqlHttp(
 
       return [res, requestCtx];
     }
+
     const [executionResult, executionErrors] = await tryCatch(() =>
-      graphql({
+      execute({
         source,
         variableValues,
         operationName,
         schema,
+        document: documentAST,
         ...rest,
       })
     );
