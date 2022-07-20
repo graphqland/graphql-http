@@ -1,6 +1,7 @@
 import {
   createRequest,
   jsonObject,
+  mergeHeaders,
   Options,
   Params,
   resolveResponse,
@@ -47,13 +48,18 @@ export default async function gqlFetch<T extends jsonObject>(
       method,
     },
     { variables, operationName },
-    requestInit,
   );
 
   if (!data) {
     throw err;
   }
 
-  const res = await fetch(data);
+  const [headers, error] = mergeHeaders(data.headers, requestInit?.headers);
+  if (!headers) {
+    throw error;
+  }
+
+  const req = new Request(data, { ...requestInit, headers });
+  const res = await fetch(req);
   return resolveResponse(res);
 }
