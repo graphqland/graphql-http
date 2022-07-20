@@ -30,6 +30,7 @@ export {
   type json,
   stringify,
 } from "https://deno.land/x/pure_json@1.0.0-beta.1/mod.ts";
+import { type json } from "https://deno.land/x/pure_json@1.0.0-beta.1/mod.ts";
 export {
   type RenderPageOptions,
   renderPlaygroundPage,
@@ -51,6 +52,10 @@ export type PickRequired<T> = {
 
 export type PickPartial<T> = {
   [K in keyof T as Record<never, never> extends Pick<T, K> ? K : never]: T[K];
+};
+
+export type jsonObject = {
+  [k: string]: json;
 };
 
 export function tryCatchSync<T>(

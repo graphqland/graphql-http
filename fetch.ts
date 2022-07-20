@@ -1,12 +1,8 @@
-import {
-  createRequest,
-  jsonObject,
-  Options,
-  Params,
-  resolveResponse,
-  Result,
-} from "./requests.ts";
+import { createRequest, Options, Params } from "./requests.ts";
+import { jsonObject } from "./deps.ts";
 import { mergeHeaders } from "./utils.ts";
+import { Result } from "./types.ts";
+import { resolveResponse } from "./responses.ts";
 
 /** GraphQL client with HTTP.
  * @param params parameters

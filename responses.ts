@@ -6,6 +6,7 @@ import {
   GraphQLError,
   isString,
   isUndefined,
+  jsonObject,
   parse,
   specifiedRules,
   Status,
@@ -13,7 +14,7 @@ import {
   tryCatchSync,
   validate,
 } from "./deps.ts";
-import { ApplicationGraphQLJson, ApplicationJson } from "./types.ts";
+import { ApplicationGraphQLJson, ApplicationJson, Result } from "./types.ts";
 import { APPLICATION_GRAPHQL_JSON, APPLICATION_JSON } from "./constants.ts";
 import { mergeInit } from "./utils.ts";
 
@@ -203,4 +204,57 @@ function resolveError(er: unknown): GraphQLError {
       er,
     )
     : new GraphQLError("Unknown error has occurred.");
+}
+
+/**
+ * Resolve GraphQL over HTTP response safety.
+ * @param res `Request` object
+ * @throws Error
+ * @throws AggregateError
+ * @throws SyntaxError
+ * @throws TypeError
+ * ```ts
+ * import {
+ *   resolveResponse,
+ * } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+ *
+ * const res = new Response(); // any Response
+ * const result = await resolveResponse(res);
+ * ```
+ */
+export async function resolveResponse<T extends jsonObject>(
+  res: Response,
+): Promise<Result<T>> {
+  const contentType = res.headers.get("content-type");
+
+  if (!contentType) {
+    throw Error(`"Content-Type" header is required`);
+  }
+
+  if (!isValidContentType(contentType)) {
+    throw Error(
+      `Valid "Content-Type" is application/graphql+json or application/json`,
+    );
+  }
+
+  const json = await res.json() as Result<T>;
+
+  if (res.ok) {
+    return json;
+  } else {
+    if (json.errors) {
+      throw new AggregateError(
+        json.errors,
+        "GraphQL request error has occurred",
+      );
+    }
+
+    throw Error("Unknown error has occurred");
+  }
+}
+
+export function isValidContentType(value: string): boolean {
+  return ["application/json", "application/graphql+json"].some((mimeType) =>
+    value.includes(mimeType)
+  );
 }

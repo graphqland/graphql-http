@@ -3,20 +3,7 @@ import {
   APPLICATION_JSON,
   MIME_TYPE_APPLICATION_JSON,
 } from "./constants.ts";
-import {
-  GraphQLError,
-  isString,
-  json,
-  PickBy,
-  stringify,
-  tryCatchSync,
-} from "./deps.ts";
-
-export type SerializedGraphQLError = PickBy<GraphQLError, json | undefined>;
-
-export type jsonObject = {
-  [k: string]: json;
-};
+import { isString, jsonObject, stringify, tryCatchSync } from "./deps.ts";
 
 const ACCEPT = `${APPLICATION_GRAPHQL_JSON}, ${APPLICATION_JSON}` as const;
 
@@ -42,20 +29,6 @@ export type Options = {
   /** GraphQL operation name.  */
   operationName: string;
 };
-
-export type Result<
-  T extends Record<string, unknown> = Record<string, unknown>,
-> = {
-  data?: T;
-  errors?: SerializedGraphQLError[];
-  extensions?: unknown;
-};
-
-export interface GraphQLResponse<T extends jsonObject = jsonObject> {
-  data?: T | null;
-  errors?: GraphQLError[];
-  extensions?: unknown;
-}
 
 /** Create GraphQL `Request` object.
  * @param params parameters.
@@ -167,57 +140,4 @@ function addQueryString(
   }
 
   return [url, undefined];
-}
-
-/**
- * Resolve GraphQL over HTTP response safety.
- * @param res `Request` object
- * @throws Error
- * @throws AggregateError
- * @throws SyntaxError
- * @throws TypeError
- * ```ts
- * import {
- *   resolveResponse,
- * } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
- *
- * const res = new Response(); // any Response
- * const result = await resolveResponse(res);
- * ```
- */
-export async function resolveResponse<T extends jsonObject>(
-  res: Response,
-): Promise<Result<T>> {
-  const contentType = res.headers.get("content-type");
-
-  if (!contentType) {
-    throw Error(`"Content-Type" header is required`);
-  }
-
-  if (!isValidContentType(contentType)) {
-    throw Error(
-      `Valid "Content-Type" is application/graphql+json or application/json`,
-    );
-  }
-
-  const json = await res.json() as Result<T>;
-
-  if (res.ok) {
-    return json;
-  } else {
-    if (json.errors) {
-      throw new AggregateError(
-        json.errors,
-        "GraphQL request error has occurred",
-      );
-    }
-
-    throw Error("Unknown error has occurred");
-  }
-}
-
-export function isValidContentType(value: string): boolean {
-  return ["application/json", "application/graphql+json"].some((mimeType) =>
-    value.includes(mimeType)
-  );
 }
