@@ -2,9 +2,13 @@ export * from "https://deno.land/std@0.148.0/testing/asserts.ts";
 export * from "https://deno.land/std@0.148.0/testing/bdd.ts";
 export * from "https://deno.land/std@0.148.0/media_types/mod.ts";
 export * from "https://deno.land/std@0.148.0/http/mod.ts";
-import { defineExpect } from "https://deno.land/x/unitest@v1.0.0-beta.82/expect/mod.ts";
-import { jestMatcherMap } from "https://deno.land/x/unitest@v1.0.0-beta.82/matcher/mod.ts";
-import { jestModifierMap } from "https://deno.land/x/unitest@v1.0.0-beta.82/modifier/mod.ts";
+import {
+  defineExpect,
+  equal,
+  jestMatcherMap,
+  jestModifierMap,
+  MatchResult,
+} from "https://deno.land/x/unitest@v1.0.0-beta.82/mod.ts";
 import { isString } from "https://deno.land/x/isx@v1.0.0-beta.17/mod.ts";
 export * from "https://esm.sh/graphql@16.5.0";
 
@@ -44,9 +48,24 @@ export const expect = defineExpect({
         expected: error,
       };
     },
+    toEqualIterable,
   },
   modifierMap: jestModifierMap,
 });
+
+function toEqualIterable(
+  actual: Iterable<readonly [PropertyKey, string]>,
+  expected: Iterable<readonly [PropertyKey, string]>,
+): MatchResult {
+  const act = Object.fromEntries(actual);
+  const exp = Object.fromEntries(expected);
+
+  return {
+    pass: equal(act, exp),
+    expected: exp,
+    resultActual: act,
+  };
+}
 
 export function queryString(
   baseURL: string | URL,
