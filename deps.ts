@@ -1,6 +1,7 @@
 export {
   buildSchema,
   execute,
+  executeSync,
   type ExecutionResult,
   getOperationAST,
   graphql,
@@ -22,6 +23,7 @@ export {
   isNull,
   isObject,
   isString,
+  isUndefined,
 } from "https://deno.land/x/isx@v1.0.0-beta.17/mod.ts";
 export {
   JSON,
@@ -41,6 +43,14 @@ export type PartialBy<T, K = keyof T> =
 
 export type PickBy<T, K> = {
   [k in keyof T as (K extends T[k] ? k : never)]: T[k];
+};
+
+export type PickRequired<T> = {
+  [k in keyof T as T[k] extends Required<T>[k] ? k : never]: T[k];
+};
+
+export type PickPartial<T> = {
+  [K in keyof T as Record<never, never> extends Pick<T, K> ? K : never]: T[K];
 };
 
 export function tryCatchSync<T>(

@@ -2,24 +2,19 @@ import { validatePlaygroundRequest, validateRequest } from "./validates.ts";
 import {
   accepts,
   contentType,
-  execute,
-  ExecutionResult,
-  getOperationAST,
   GraphQLArgs,
-  GraphQLError,
-  isString,
-  JSON,
-  parse,
   PartialBy,
   RenderPageOptions,
   renderPlaygroundPage,
-  specifiedRules,
   Status,
-  tryCatch,
-  tryCatchSync,
-  validate,
   validateSchema,
 } from "./deps.ts";
+import {
+  createJSONResponse,
+  createResponseFrom,
+  createResult,
+  withCharset,
+} from "./responses.ts";
 
 export type Params =
   & PartialBy<GraphQLArgs, "source">
@@ -138,150 +133,29 @@ export default function graphqlHttp(
       }
 
       const result = createResult(err);
-      const res = createResponse(result, {
+      const res = createJSONResponse(result, {
         status: err.statusHint,
-        contentType: preferContentType,
+        headers: {
+          "content-type": preferContentType,
+        },
       });
 
       return [res, requestCtx];
     }
     const { query: source, variableValues, operationName } = data;
 
-    const errorStatus = getErrorStatus(mediaType);
-    const parseResult = tryCatchSync(() => parse(source));
-    if (!parseResult[0]) {
-      const result = createResult(parseResult[1]);
-      const res = createResponse(result, {
-        status: errorStatus,
-        contentType: preferContentType,
-      });
-
-      return [res, requestCtx];
-    }
-    const documentAST = parseResult[0];
-    const operationAST = getOperationAST(documentAST, operationName);
-    if (
-      req.method === "GET" && operationAST && operationAST.operation !== "query"
-    ) {
-      const result = createResult(
-        `Invalid GraphQL operation. Can only perform a ${operationAST.operation} operation from a POST request.`,
-      );
-      const res = createResponse(result, {
-        status: Status.MethodNotAllowed,
-        contentType: preferContentType,
-      });
-
-      return [res, requestCtx];
-    }
-    const validationErrors = validate(schema, documentAST, specifiedRules);
-    if (validationErrors.length > 0) {
-      const result: ExecutionResult = { errors: validationErrors };
-      const res = createResponse(result, {
-        status: errorStatus,
-        contentType: preferContentType,
-      });
-
-      return [res, requestCtx];
-    }
-
-    const [executionResult, executionErrors] = await tryCatch(() =>
-      execute({
-        source,
-        variableValues,
-        operationName,
-        schema,
-        document: documentAST,
-        ...rest,
-      })
-    );
-    if (executionResult) {
-      switch (mediaType) {
-        case "application/json": {
-          const res = createResponse(executionResult, {
-            status: Status.OK,
-            contentType: preferContentType,
-          });
-
-          return [res, requestCtx];
-        }
-
-        case "application/graphql+json": {
-          const status = "data" in executionResult
-            ? Status.OK
-            : Status.BadRequest;
-          const res = createResponse(executionResult, {
-            status,
-            contentType: preferContentType,
-          });
-
-          return [res, requestCtx];
-        }
-      }
-    }
-
-    const result = createResult(executionErrors);
-    const res = createResponse(result, {
-      status: Status.InternalServerError,
-      contentType: preferContentType,
+    const res = createResponseFrom({
+      schema,
+      source,
+      variableValues,
+      operationName,
+      contentType: mediaType,
+      method: req.method,
+      ...rest,
     });
+
     return [res, requestCtx];
   }
-}
-
-function createResult(error: unknown): ExecutionResult {
-  const graphqlError = resolveError(error);
-  const result: ExecutionResult = { errors: [graphqlError] };
-  return result;
-}
-
-function createResponse(
-  result: ExecutionResult,
-  { contentType, status }: Readonly<
-    { contentType: ResponseContentType; status: number }
-  >,
-): Response {
-  const [resultStr, err] = JSON.stringify(result);
-
-  if (err) {
-    const graphqlError = resolveError(err);
-    const result: ExecutionResult = { errors: [graphqlError] };
-    const [body] = JSON.stringify(result);
-    return new Response(body, {
-      headers: {
-        "content-type": contentType,
-      },
-      status: Status.InternalServerError,
-    });
-  }
-
-  const response = new Response(resultStr, {
-    status,
-    headers: {
-      "content-type": contentType,
-    },
-  });
-
-  return response;
-}
-
-function resolveError(er: unknown): GraphQLError {
-  if (er instanceof GraphQLError) return er;
-  if (isString(er)) return new GraphQLError(er);
-
-  return er instanceof Error
-    ? new GraphQLError(
-      er.message,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      er,
-    )
-    : new GraphQLError("Unknown error has occurred.");
-}
-
-function withCharset<T extends string>(value: T): `${T}; charset=UTF-8` {
-  return `${value}; charset=UTF-8`;
 }
 
 function getMediaType(
@@ -289,16 +163,4 @@ function getMediaType(
 ): "application/graphql+json" | "application/json" {
   return (accepts(req, "application/graphql+json", "application/json") ??
     "application/json") as "application/graphql+json" | "application/json";
-}
-
-type ResponseContentType =
-  | "application/graphql+json; charset=UTF-8"
-  | "application/json; charset=UTF-8";
-
-// When "Content-Type" is `application/json`, all Request error should be `200` status code. @see https://graphql.github.io/graphql-over-http/draft/#sec-application-json
-// Validation error is Request error. @see https://spec.graphql.org/draft/#sec-Errors.Request-errors
-function getErrorStatus(
-  mediaType: "application/graphql+json" | "application/json",
-): number {
-  return mediaType === "application/json" ? Status.OK : Status.BadRequest;
 }
