@@ -1,3 +1,10 @@
+# [1.0.0-beta.9](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.8...1.0.0-beta.9) (2022-07-20)
+
+
+### Features
+
+* add graphql over http client ([26525b8](https://github.com/TomokiMiyauci/graphql-http/commit/26525b8f0a23d0f9d54e4d3a073f4f88f1319824))
+
 # [1.0.0-beta.8](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.7...1.0.0-beta.8) (2022-07-18)
 
 
