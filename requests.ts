@@ -56,27 +56,39 @@ export interface GraphQLResponse<T extends jsonObject = jsonObject> {
   extensions?: unknown;
 }
 
+/** Create GraphQL `Request` object.
+ * @param params parameters.
+ * @param options options.
+ * ```ts
+ * import { createRequest } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+ *
+ * const [request, err] = createRequest({
+ *   url: "<graphql-endpoint>",
+ *   query: `query Greet(name: $name) {
+ *     hello(name: $name)
+ *   }`,
+ *   method: "GET",
+ * });
+ *
+ * if (!err) {
+ *   const res = await fetch(request);
+ * }
+ * ```
+ */
 export function createRequest(
   params: Readonly<Params & Pick<Options, "method">>,
-  options: Partial<Options>,
-  requestInit: RequestInit = {},
+  options: Partial<Omit<Options, "method">> = {},
 ): [data: Request, error: undefined] | [data: undefined, error: TypeError] {
   const [data, err] = createRequestInitSet(params, options);
   if (err) {
     return [, err];
   }
 
-  const mergeResult = mergeRequest(data.requestInit, requestInit);
-  if (mergeResult[1]) {
-    return [, mergeResult[1]];
-  }
+  const requestResult = tryCatchSync(() =>
+    new Request(data.url.toString(), data.requestInit)
+  );
 
-  try {
-    const req = new Request(data.url.toString(), mergeResult[0]);
-    return [req, undefined];
-  } catch (e) {
-    return [, e as TypeError];
-  }
+  return requestResult as [Request, undefined] | [undefined, TypeError];
 }
 
 export function createRequestInitSet(
@@ -123,7 +135,7 @@ export function createRequestInitSet(
         method,
         body,
         headers: {
-          Accept: ACCEPT,
+          accept: ACCEPT,
           "content-type": MIME_TYPE_APPLICATION_JSON,
         },
       };
@@ -192,7 +204,7 @@ function mergeRequest(
   }, undefined];
 }
 
-function mergeHeaders(
+export function mergeHeaders(
   a?: HeadersInit,
   b?: HeadersInit,
 ): [data: HeadersInit, err: undefined] | [data: undefined, err: TypeError] {

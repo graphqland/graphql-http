@@ -301,6 +301,44 @@ type jsonObject = {
 - `DOMException`
 - `AggregateError`
 
+### createRequest
+
+Create GraphQL `Request` object.
+
+#### Example
+
+```ts
+import { createRequest } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+
+const [request, err] = createRequest({
+  url: "<graphql-endpoint>",
+  query: `query Greet(name: $name) {
+    hello(name: $name)
+  }`,
+  method: "GET",
+});
+
+if (!err) {
+  const res = await fetch(request);
+}
+```
+
+#### Parameters
+
+| N | Name          | Required / Default | Description                                                                                                                                                 |
+| - | ------------- | :----------------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | params        | :white_check_mark: | Parameters                                                                                                                                                  |
+|   | url           | :white_check_mark: | `string` &#124; `URL`<br>GraphQL URL endpoint.                                                                                                              |
+|   | query         | :white_check_mark: | `string`<br>GraphQL query                                                                                                                                   |
+|   | method        | :white_check_mark: | `"GET"` &#124; `"POST"` &#124; `({} & string)`<br>HTTP Request method. According to the GraphQL over HTTP Spec, all GraphQL servers accept `POST` requests. |
+| 2 | options       |         -          | Options                                                                                                                                                     |
+|   | variables     |         -          | `jsonObject`<br> GraphQL variables.                                                                                                                         |
+|   | operationName |         -          | `string`<br>GraphQL operation name.                                                                                                                         |
+
+#### ReturnType
+
+`[data: Request, error: undefined] | [data: undefined, error: TypeError]`
+
 ## Recipes
 
 - [std/http](./examples/std_http/README.md)
