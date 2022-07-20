@@ -1,3 +1,10 @@
+# [1.0.0-beta.10](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.9...1.0.0-beta.10) (2022-07-20)
+
+
+### Features
+
+* export `createRequest` function that create `Request` what include GraphQL header and body ([405ce48](https://github.com/TomokiMiyauci/graphql-http/commit/405ce4806f7b3901680a40d662b34de82670db5f))
+
 # [1.0.0-beta.9](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.8...1.0.0-beta.9) (2022-07-20)
 
 
