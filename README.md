@@ -357,7 +357,7 @@ import {
   resolveResponse,
 } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
 
-const res = new Request(""); // any Request
+const res = new Response(); // any Response
 const { data, errors, extensions } = await resolveResponse(res);
 ```
 

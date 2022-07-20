@@ -181,7 +181,7 @@ function addQueryString(
  *   resolveResponse,
  * } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
  *
- * const res = new Request(""); // any Request
+ * const res = new Response(); // any Response
  * const result = await resolveResponse(res);
  * ```
  */
