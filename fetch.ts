@@ -12,7 +12,9 @@ import {
  * @param params parameters
  * @param options Options
  * @param requestInit Request init for customize HTTP request.
+ * @throw Error
  * @throws TypeError
+ * @throw SyntaxError
  * @throws DOMException
  * @throws AggregateError
  * ```ts

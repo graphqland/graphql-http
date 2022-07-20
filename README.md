@@ -298,7 +298,9 @@ type jsonObject = {
 
 #### Throws
 
+- `Error`
 - `TypeError`
+- `SyntaxError`
 - `DOMException`
 - `AggregateError`
 
