@@ -187,23 +187,6 @@ export async function resolveResponse<T extends jsonObject>(
   }
 }
 
-function mergeRequest(
-  a: RequestInit,
-  b: RequestInit,
-): [data: RequestInit, err: undefined] | [data: undefined, err: TypeError] {
-  const [data, err] = mergeHeaders(a.headers, b.headers);
-  if (err) {
-    return [, err];
-  }
-
-  const headers = new Headers(data);
-  return [{
-    ...a,
-    ...b,
-    headers,
-  }, undefined];
-}
-
 export function mergeHeaders(
   a?: HeadersInit,
   b?: HeadersInit,
