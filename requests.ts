@@ -170,7 +170,7 @@ function addQueryString(
 }
 
 /**
- * Resolve GraphQL HTTP request safety.
+ * Resolve GraphQL over HTTP response safety.
  * @param res `Request` object
  * @throws Error
  * @throws AggregateError
@@ -178,11 +178,11 @@ function addQueryString(
  * @throws TypeError
  * ```ts
  * import {
- *   resolveRequest,
+ *   resolveResponse,
  * } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
  *
- * const res = new Request(); // any Request
- * const result = await resolveRequest(res);
+ * const res = new Request(""); // any Request
+ * const result = await resolveResponse(res);
  * ```
  */
 export async function resolveResponse<T extends jsonObject>(

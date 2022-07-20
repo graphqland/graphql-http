@@ -346,19 +346,19 @@ if (!err) {
 
 `[data: Request, error: undefined] | [data: undefined, error: TypeError]`
 
-#### resolveRequest
+#### resolveResponse
 
-Resolve GraphQL HTTP request safety.
+Resolve GraphQL over HTTP response safety.
 
 #### Example
 
 ```ts
 import {
-  resolveRequest,
+  resolveResponse,
 } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
 
-const res = new Request(); // any Request
-const { data, errors, extensions } = await resolveRequest(res);
+const res = new Request(""); // any Request
+const { data, errors, extensions } = await resolveResponse(res);
 ```
 
 #### Parameters
