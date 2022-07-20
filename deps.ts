@@ -26,6 +26,7 @@ export {
 export {
   JSON,
   type json,
+  stringify,
 } from "https://deno.land/x/pure_json@1.0.0-beta.1/mod.ts";
 export {
   type RenderPageOptions,

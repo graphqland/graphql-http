@@ -1,0 +1,59 @@
+import {
+  createRequest,
+  jsonObject,
+  Options,
+  Params,
+  resolveResponse,
+  Result,
+} from "./requests.ts";
+
+/** GraphQL client with HTTP.
+ * @param params parameters
+ * @param options Options
+ * @param requestInit Request init for customize HTTP request.
+ * @throws TypeError
+ * @throws DOMException
+ * @throws AggregateError
+ * ```ts
+ * import { gqlFetch } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+ *
+ * const { data, errors, extensions } = await gqlFetch({
+ *   url: `<graphql-endpoint>`,
+ *   query: `query Greet(name: $name) {
+ *     hello(name: $name)
+ *   }
+ *   `,
+ * }, {
+ *   variables: {
+ *     name: "Bob",
+ *   },
+ *   operationName: "Greet",
+ *   method: "GET",
+ * });
+ * ```
+ */
+export default async function gqlFetch<T extends jsonObject>(
+  { url, query }: Readonly<Params>,
+  { method: _method = "POST", variables, operationName }: Readonly<
+    Partial<Options>
+  > = {},
+  requestInit?: RequestInit,
+): Promise<Result<T>> {
+  const method = requestInit?.method ?? _method;
+  const [data, err] = createRequest(
+    {
+      url,
+      query,
+      method,
+    },
+    { variables, operationName },
+    requestInit,
+  );
+
+  if (!data) {
+    throw err;
+  }
+
+  const res = await fetch(data);
+  return resolveResponse(res);
+}

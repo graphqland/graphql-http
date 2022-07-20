@@ -229,13 +229,77 @@ Make a GraphQL `Response` Object that validate to `Request` Object.
 | playground        |             -              | `boolean`<br>Whether enabled [graphql-playground](https://github.com/graphql/graphql-playground) or not.                                                                                                                                                                               |
 | playgroundOptions | `{ endpoint: "/graphql" }` | `RenderPageOptions`<br> [graphql-playground](https://github.com/graphql/graphql-playground) options.                                                                                                                                                                                   |
 
-### ReturnType
+#### ReturnType
 
 `(req: Request) => Promise<Response>`
 
-### Throws
+#### Throws
 
 - `AggregateError` - When graphql schema validation is fail.
+
+### gqlFetch
+
+GraphQL client with HTTP.
+
+#### Example
+
+```ts
+import { gqlFetch } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+
+const { data, errors, extensions } = await gqlFetch({
+  url: `<graphql-endpoint>`,
+  query: `query Greet(name: $name) {
+    hello(name: $name)
+  }`,
+}, {
+  variables: {
+    name: "Bob",
+  },
+  operationName: "Greet",
+  method: "GET",
+});
+```
+
+#### Generics
+
+- `T extends jsonObject` - `data` field type
+
+#### Parameters
+
+| N | Name          | Required / Default | Description                                                                                                                                                 |
+| - | ------------- | :----------------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | params        | :white_check_mark: | Parameters                                                                                                                                                  |
+|   | url           | :white_check_mark: | `string` &#124; `URL`<br>GraphQL URL endpoint.                                                                                                              |
+|   | query         | :white_check_mark: | `string`<br>GraphQL query                                                                                                                                   |
+| 2 | options       |         -          | Options                                                                                                                                                     |
+|   | variables     |         -          | `jsonObject`<br> GraphQL variables.                                                                                                                         |
+|   | operationName |         -          | `string`<br>GraphQL operation name.                                                                                                                         |
+|   | method        |      `"POST"`      | `"GET"` &#124; `"POST"` &#124; `({} & string)`<br>HTTP Request method. According to the GraphQL over HTTP Spec, all GraphQL servers accept `POST` requests. |
+| 3 | requestInit   |         -          | `RequestInit`<br>Request init for customize HTTP request.                                                                                                   |
+
+```ts
+type json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [k: string]: json }
+  | json[];
+
+type jsonObject = {
+  [k: string]: json;
+};
+```
+
+#### ReturnTypes
+
+`Promise<Result<T>>`
+
+#### Throws
+
+- `TypeError`
+- `DOMException`
+- `AggregateError`
 
 ## Recipes
 
