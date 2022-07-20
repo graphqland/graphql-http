@@ -1,3 +1,10 @@
+# [1.0.0-beta.11](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.10...1.0.0-beta.11) (2022-07-20)
+
+
+### Features
+
+* export `resolveResponse` that de-serialize graphql response safety ([6aaf20c](https://github.com/TomokiMiyauci/graphql-http/commit/6aaf20c7a7ee3e0367bf08d16c5e9a228604249d))
+
 # [1.0.0-beta.10](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.9...1.0.0-beta.10) (2022-07-20)
 
 
