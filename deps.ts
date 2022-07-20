@@ -15,8 +15,8 @@ export {
 export {
   contentType,
   parseMediaType,
-} from "https://deno.land/std@0.147.0/media_types/mod.ts";
-export { accepts } from "https://deno.land/std@0.147.0/http/negotiation.ts";
+} from "https://deno.land/std@0.148.0/media_types/mod.ts";
+export { accepts } from "https://deno.land/std@0.148.0/http/negotiation.ts";
 export {
   isNil,
   isNull,
@@ -38,6 +38,10 @@ export type PartialBy<T, K = keyof T> =
   Omit<T, K & keyof T> & Partial<Pick<T, K & keyof T>> extends infer U
     ? { [K in keyof U]: U[K] }
     : never;
+
+export type PickBy<T, K> = {
+  [k in keyof T as (K extends T[k] ? k : never)]: T[k];
+};
 
 export function tryCatchSync<T>(
   fn: () => T,

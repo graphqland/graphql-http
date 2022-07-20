@@ -324,6 +324,10 @@ if (!err) {
 }
 ```
 
+#### Generics
+
+- `T extends jsonObject`
+
 #### Parameters
 
 | N | Name          | Required / Default | Description                                                                                                                                                 |
@@ -339,6 +343,55 @@ if (!err) {
 #### ReturnType
 
 `[data: Request, error: undefined] | [data: undefined, error: TypeError]`
+
+#### resolveRequest
+
+Resolve GraphQL HTTP request safety.
+
+#### Example
+
+```ts
+import {
+  resolveRequest,
+} from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+
+const res = new Request(); // any Request
+const { data, errors, extensions } = await resolveRequest(res);
+```
+
+#### Parameters
+
+| Name |      Required      | Description                    |
+| ---- | :----------------: | ------------------------------ |
+| res  | :white_check_mark: | `Request`<br> `Request` object |
+
+#### ReturnType
+
+`Promise<Result<T>>`
+
+```ts
+import { GraphQLError } from "https://esm.sh/graphql@$VERSION";
+import { json } from "https://deno.land/x/pure_json@$VERSION/mod.ts";
+type PickBy<T, K> = {
+  [k in keyof T as (K extends T[k] ? k : never)]: T[k];
+};
+
+type SerializedGraphQLError = PickBy<GraphQLError, json | undefined>;
+type Result<
+  T extends Record<string, unknown> = Record<string, unknown>,
+> = {
+  data?: T;
+  errors?: SerializedGraphQLError[];
+  extensions?: unknown;
+};
+```
+
+#### Throws
+
+- `Error`
+- `AggregateError`
+- `SyntaxError`
+- `TypeError`
 
 ## Recipes
 

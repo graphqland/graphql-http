@@ -7,11 +7,12 @@ import {
   GraphQLError,
   isString,
   json,
+  PickBy,
   stringify,
   tryCatchSync,
 } from "./deps.ts";
 
-type GqlError = Omit<InstanceType<typeof GraphQLError>, "toString" | "toJSON">;
+export type SerializedGraphQLError = PickBy<GraphQLError, json | undefined>;
 
 export type jsonObject = {
   [k: string]: json;
@@ -46,7 +47,7 @@ export type Result<
   T extends Record<string, unknown> = Record<string, unknown>,
 > = {
   data?: T;
-  errors?: GqlError[];
+  errors?: SerializedGraphQLError[];
   extensions?: unknown;
 };
 
@@ -168,9 +169,37 @@ function addQueryString(
   return [url, undefined];
 }
 
+/**
+ * Resolve GraphQL HTTP request safety.
+ * @param res `Request` object
+ * @throws Error
+ * @throws AggregateError
+ * @throws SyntaxError
+ * @throws TypeError
+ * ```ts
+ * import {
+ *   resolveRequest,
+ * } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+ *
+ * const res = new Request(); // any Request
+ * const result = await resolveRequest(res);
+ * ```
+ */
 export async function resolveResponse<T extends jsonObject>(
   res: Response,
 ): Promise<Result<T>> {
+  const contentType = res.headers.get("content-type");
+
+  if (!contentType) {
+    throw Error(`"Content-Type" header is required`);
+  }
+
+  if (!isValidContentType(contentType)) {
+    throw Error(
+      `Valid "Content-Type" is application/graphql+json or application/json`,
+    );
+  }
+
   const json = await res.json() as Result<T>;
 
   if (res.ok) {
@@ -204,4 +233,10 @@ export function mergeHeaders(
   } catch (e) {
     return [, e as TypeError];
   }
+}
+
+export function isValidContentType(value: string): boolean {
+  return ["application/json", "application/graphql+json"].some((mimeType) =>
+    value.includes(mimeType)
+  );
 }
