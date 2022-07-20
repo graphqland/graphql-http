@@ -15,7 +15,7 @@ import {
 } from "./deps.ts";
 import { ApplicationGraphQLJson, ApplicationJson } from "./types.ts";
 import { APPLICATION_GRAPHQL_JSON, APPLICATION_JSON } from "./constants.ts";
-import { mergeResponse } from "./utils.ts";
+import { mergeInit } from "./utils.ts";
 
 export type Params = {
   contentType: ApplicationGraphQLJson | ApplicationJson;
@@ -170,7 +170,7 @@ export function createJSONResponse(
   if (err) {
     const result = createResult(err);
     const [body] = JSON.stringify(result);
-    const init = mergeResponse(responseInit, {
+    const init = mergeInit(responseInit, {
       status: Status.InternalServerError,
     });
     return new Response(body, init[0]);

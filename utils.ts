@@ -17,10 +17,12 @@ export function mergeHeaders(
   }
 }
 
-export function mergeResponse(
-  a: ResponseInit,
-  b: ResponseInit,
-): [data: ResponseInit] | [data: undefined, err: TypeError] {
+export function mergeInit<
+  T extends { headers?: HeadersInit },
+>(
+  a: T,
+  b: T,
+): [data: T] | [data: undefined, err: TypeError] {
   const [headers, err] = mergeHeaders(a.headers, b.headers);
 
   if (err) {

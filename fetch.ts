@@ -1,12 +1,12 @@
 import {
   createRequest,
   jsonObject,
-  mergeHeaders,
   Options,
   Params,
   resolveResponse,
   Result,
 } from "./requests.ts";
+import { mergeHeaders } from "./utils.ts";
 
 /** GraphQL client with HTTP.
  * @param params parameters
