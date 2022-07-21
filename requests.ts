@@ -3,7 +3,22 @@ import {
   APPLICATION_JSON,
   MIME_TYPE_APPLICATION_JSON,
 } from "./constants.ts";
-import { isString, jsonObject, stringify, tryCatchSync } from "./deps.ts";
+import {
+  accepts,
+  createHttpError,
+  HttpError,
+  isNil,
+  isNull,
+  isObject,
+  isString,
+  JSON,
+  jsonObject,
+  parseMediaType,
+  Status,
+  stringify,
+  tryCatchSync,
+} from "./deps.ts";
+import { GraphQLParameters } from "./types.ts";
 
 const ACCEPT = `${APPLICATION_GRAPHQL_JSON}, ${APPLICATION_JSON}` as const;
 
@@ -140,4 +155,261 @@ function addQueryString(
   }
 
   return [url, undefined];
+}
+
+type ResolveRequestResult = [data: GraphQLParameters] | [
+  data: undefined,
+  error: HttpError,
+];
+
+export function resolveRequest(
+  req: Request,
+): ResolveRequestResult | Promise<ResolveRequestResult> {
+  const method = req.method;
+
+  switch (method) {
+    case "GET": {
+      return resolveGetRequest(req);
+    }
+    case "POST": {
+      return resolvePostRequest(req);
+    }
+    default: {
+      return [
+        ,
+        createHttpError(
+          Status.MethodNotAllowed,
+          `Invalid HTTP method. GraphQL only supports GET and POST requests.`,
+        ),
+      ];
+    }
+  }
+}
+
+export function resolveGetRequest(req: Request): ResolveRequestResult {
+  const acceptResult = resolveAcceptHeader(req);
+
+  if (acceptResult[1]) {
+    return acceptResult;
+  }
+
+  const url = new URL(req.url);
+
+  const source = url.searchParams.get("query");
+  if (!source) {
+    return [
+      ,
+      createHttpError(Status.BadRequest, `The parameter is required. "query"`),
+    ];
+  }
+  let variableValues: Record<string, unknown> | null = null;
+  const variables = url.searchParams.get("variables");
+  if (isString(variables)) {
+    const [data, err] = JSON.parse(variables);
+    if (err) {
+      return [
+        ,
+        createHttpError(
+          Status.BadRequest,
+          `The parameter is invalid. "variables" are invalid JSON.`,
+        ),
+      ];
+    }
+    if (isPlainObject(data)) {
+      variableValues = data;
+    }
+  }
+
+  const operationName = url.searchParams.get("operationName");
+
+  return [{
+    query: source,
+    variableValues,
+    operationName,
+  }];
+}
+export async function resolvePostRequest(
+  req: Request,
+): Promise<ResolveRequestResult> {
+  const acceptHeader = resolveAcceptHeader(req);
+
+  if (acceptHeader[1]) {
+    return acceptHeader;
+  }
+  const contentType = req.headers.get("content-type");
+  if (!contentType) {
+    return [
+      ,
+      createHttpError(
+        Status.BadRequest,
+        `The header is required. "Content-Type"`,
+      ),
+    ];
+  }
+
+  const [mediaType, record = { charset: "UTF-8" }] = parseMediaType(
+    contentType,
+  );
+
+  const charset = record.charset ? record.charset : "UTF-8";
+  if (charset.toUpperCase() !== "UTF-8") {
+    return [
+      ,
+      createHttpError(
+        Status.UnsupportedMediaType,
+        `The header is invalid. Supported media type charset is "UTF-8".`,
+      ),
+    ];
+  }
+
+  // // TODO:(miyauci) check the body already read.
+  // const body = await req.text();
+
+  switch (mediaType) {
+    case "application/json": {
+      const data = await req.text();
+      const [json, err] = JSON.parse(data);
+
+      if (err) {
+        return [
+          ,
+          createHttpError(
+            Status.BadRequest,
+            `The message body is invalid. Invalid JSON format.`,
+          ),
+        ];
+      }
+
+      if (!isPlainObject(json)) {
+        return [
+          ,
+          createHttpError(
+            Status.BadRequest,
+            `The message body is invalid. Must be JSON object format.`,
+          ),
+        ];
+      }
+
+      const { query: _query, operationName = null, variables = null } = json;
+
+      const query = isNil(_query)
+        ? new URL(req.url).searchParams.get("query")
+        : _query;
+
+      if (isNil(query)) {
+        return [
+          ,
+          createHttpError(
+            Status.BadRequest,
+            `The parameter is required. "query"`,
+          ),
+        ];
+      }
+
+      if (!isString(query)) {
+        return [
+          ,
+          createHttpError(
+            Status.BadRequest,
+            `The parameter is invalid. "query" must be string.`,
+          ),
+        ];
+      }
+
+      if (!isNull(variables) && !isPlainObject(variables)) {
+        return [
+          ,
+          createHttpError(
+            Status.BadRequest,
+            `The parameter is invalid. "variables" must be JSON object format`,
+          ),
+        ];
+      }
+      if (!isStringOrNull(operationName)) {
+        return [
+          ,
+          createHttpError(
+            Status.BadRequest,
+            `The parameter is invalid. "operationName" must be string or null.`,
+          ),
+        ];
+      }
+
+      return [{
+        query,
+        operationName,
+        variableValues: variables,
+      }];
+    }
+
+    case "application/graphql+json": {
+      const body = await req.text();
+      const fromQueryString = new URL(req.url).searchParams.get("query");
+      const query = !body ? fromQueryString : body;
+
+      if (!query) {
+        return [
+          ,
+          createHttpError(
+            Status.BadRequest,
+            `The message body is required. "GraphQL query"`,
+          ),
+        ];
+      }
+      return [{ query }];
+    }
+
+    default: {
+      return [
+        ,
+        createHttpError(
+          Status.UnsupportedMediaType,
+          `The header is invalid. "Content-Type" must be "application/json" or "application/graphql+json"`,
+        ),
+      ];
+    }
+  }
+}
+
+function resolveAcceptHeader(
+  req: Request,
+): [data: string, error: undefined] | [
+  data: undefined,
+  error: HttpError,
+] {
+  // Accept header is not provided, treat the request has `Accept: application/json`
+  // From 1st January 2025 (2025-01-01T00:00:00Z), treat the request has `Accept: application/graphql+json`
+  // @see https://graphql.github.io/graphql-over-http/draft/#sec-Legacy-watershed
+  if (!req.headers.has("accept")) {
+    return [
+      "application/json",
+      undefined,
+    ];
+  }
+
+  const acceptResult = accepts(
+    req,
+    "application/graphql+json",
+    "application/json",
+  );
+
+  if (!acceptResult) {
+    return [
+      ,
+      createHttpError(
+        Status.NotAcceptable,
+        `The header is invalid. "Accept" must include "application/graphql+json" or "application/json"`,
+      ),
+    ];
+  }
+
+  return [acceptResult, undefined];
+}
+
+function isPlainObject(value: unknown): value is Record<PropertyKey, unknown> {
+  return isObject(value) && value.constructor === Object;
+}
+
+function isStringOrNull(value: unknown): value is string | null {
+  return isString(value) || isNull(value);
 }

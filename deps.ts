@@ -35,7 +35,11 @@ export {
   type RenderPageOptions,
   renderPlaygroundPage,
 } from "https://esm.sh/graphql-playground-html@1.6.30";
-export { Status } from "https://deno.land/std@0.148.0/http/mod.ts";
+export {
+  createHttpError,
+  HttpError,
+  Status,
+} from "https://deno.land/std@0.148.0/http/mod.ts";
 
 export type PartialBy<T, K = keyof T> =
   Omit<T, K & keyof T> & Partial<Pick<T, K & keyof T>> extends infer U

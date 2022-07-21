@@ -1,4 +1,4 @@
-import { validatePlaygroundRequest, validateRequest } from "./validates.ts";
+import { validatePlaygroundRequest } from "./validates.ts";
 import {
   accepts,
   contentType,
@@ -15,6 +15,7 @@ import {
   createResult,
   withCharset,
 } from "./responses.ts";
+import { resolveRequest } from "./requests.ts";
 
 export type Params =
   & PartialBy<GraphQLArgs, "source">
@@ -121,8 +122,8 @@ export default function graphqlHttp(
     const mediaType = getMediaType(req);
     const preferContentType = withCharset(mediaType);
 
-    const [data, err] = await validateRequest(req);
-    if (err) {
+    const [data, err] = await resolveRequest(req);
+    if (!data) {
       if (playground && validatePlaygroundRequest(req)) {
         const playground = renderPlaygroundPage(playgroundOptions);
         const res = new Response(playground, {
@@ -134,7 +135,7 @@ export default function graphqlHttp(
 
       const result = createResult(err);
       const res = createJSONResponse(result, {
-        status: err.statusHint,
+        status: err.status,
         headers: {
           "content-type": preferContentType,
         },
