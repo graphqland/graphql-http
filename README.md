@@ -346,7 +346,50 @@ if (!err) {
 
 `[data: Request, error: undefined] | [data: undefined, error: TypeError]`
 
-#### resolveResponse
+### resolveRequest
+
+Resolve GraphQL over HTTP request, take out GraphQL parameters safety.
+
+#### Example
+
+```ts
+import {
+  resolveRequest,
+} from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+
+const req = new Request("<graphql-endpoint>"); // any Request
+const [data, err] = await resolveRequest(req);
+if (data) {
+  const { query, variableValues, operationName, extensions } = data;
+}
+```
+
+#### Parameters
+
+| Name |      Required      | Description                    |
+| ---- | :----------------: | ------------------------------ |
+| req  | :white_check_mark: | `Request`<br> `Request` object |
+
+#### ReturnType
+
+`Promise<RequestResult>` | `RequestResult`
+
+RequestResult:
+
+| N | Name           | Description                                                                                                                  |
+| - | -------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1 | data           | Bellow records &#124; `undefined`<br>GraphQL parameters.                                                                     |
+|   | query          | `string`<br>A Document containing GraphQL Operations and Fragments to execute.                                               |
+|   | variableValues | `Record<string, json>` &#124; `null`<br>Values for any Variables defined by the Operation.                                   |
+|   | operationName  | `string` &#124; `null`<br>The name of the Operation in the Document to execute.                                              |
+|   | extensions     | `Record<string, json>` &#124; `null`<br>Reserved for implementors to extend the protocol however they see fit.               |
+| 2 | error          | `HttpError` &#124; `undefined`<br>The base class that all derivative HTTP extend, providing a status and an expose property. |
+
+#### Remark
+
+No error is thrown and `reject` is never called.
+
+### resolveResponse
 
 Resolve GraphQL over HTTP response safety.
 
@@ -363,9 +406,9 @@ const { data, errors, extensions } = await resolveResponse(res);
 
 #### Parameters
 
-| Name |      Required      | Description                    |
-| ---- | :----------------: | ------------------------------ |
-| res  | :white_check_mark: | `Request`<br> `Request` object |
+| Name |      Required      | Description                      |
+| ---- | :----------------: | -------------------------------- |
+| res  | :white_check_mark: | `Response`<br> `Response` object |
 
 #### ReturnType
 

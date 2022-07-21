@@ -157,14 +157,29 @@ function addQueryString(
   return [url, undefined];
 }
 
-type ResolveRequestResult = [data: GraphQLParameters] | [
+export type RequestResult = [data: GraphQLParameters] | [
   data: undefined,
   error: HttpError,
 ];
 
+/** Resolve GraphQL over HTTP request, take out GraphQL parameters safety.
+ * @params req `Request` object
+ * @remark No error is thrown and `reject` is never called.
+ * ```ts
+ * import {
+ *   resolveRequest,
+ * } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+ *
+ * const req = new Request("<graphql-endpoint>"); // any Request
+ * const [data, err] = await resolveRequest(req);
+ * if (data) {
+ *   const { query, variableValues, operationName, extensions } = data;
+ * }
+ * ```
+ */
 export function resolveRequest(
   req: Request,
-): ResolveRequestResult | Promise<ResolveRequestResult> {
+): RequestResult | Promise<RequestResult> {
   const method = req.method;
 
   switch (method) {
@@ -186,7 +201,7 @@ export function resolveRequest(
   }
 }
 
-export function resolveGetRequest(req: Request): ResolveRequestResult {
+export function resolveGetRequest(req: Request): RequestResult {
   const acceptResult = resolveAcceptHeader(req);
 
   if (acceptResult[1]) {
@@ -202,7 +217,7 @@ export function resolveGetRequest(req: Request): ResolveRequestResult {
       createHttpError(Status.BadRequest, `The parameter is required. "query"`),
     ];
   }
-  let variableValues: Record<string, unknown> | null = null;
+  let variableValues: GraphQLParameters["variableValues"] | null = null;
   const variables = url.searchParams.get("variables");
   if (isString(variables)) {
     const [data, err] = JSON.parse(variables);
@@ -226,11 +241,13 @@ export function resolveGetRequest(req: Request): ResolveRequestResult {
     query: source,
     variableValues,
     operationName,
+    extensions: null,
   }];
 }
+
 export async function resolvePostRequest(
   req: Request,
-): Promise<ResolveRequestResult> {
+): Promise<RequestResult> {
   const acceptHeader = resolveAcceptHeader(req);
 
   if (acceptHeader[1]) {
@@ -339,6 +356,7 @@ export async function resolvePostRequest(
         query,
         operationName,
         variableValues: variables,
+        extensions: null,
       }];
     }
 
@@ -356,7 +374,12 @@ export async function resolvePostRequest(
           ),
         ];
       }
-      return [{ query }];
+      return [{
+        query,
+        operationName: null,
+        variableValues: null,
+        extensions: null,
+      }];
     }
 
     default: {

@@ -21,11 +21,11 @@ export type GraphQLParameters = {
   query: string;
 
   /** Values for any Variables defined by the Operation. */
-  variableValues?: Record<string, unknown> | null;
+  variableValues: Record<string, json> | null;
 
   /** The name of the Operation in the Document to execute. */
-  operationName?: string | null;
+  operationName: string | null;
 
   /** Reserved for implementors to extend the protocol however they see fit. */
-  extensions?: Record<string, unknown> | null;
+  extensions: Record<string, json> | null;
 };

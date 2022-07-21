@@ -208,7 +208,7 @@ function resolveError(er: unknown): GraphQLError {
 
 /**
  * Resolve GraphQL over HTTP response safety.
- * @param res `Request` object
+ * @param res `Response` object
  * @throws Error
  * @throws AggregateError
  * @throws SyntaxError

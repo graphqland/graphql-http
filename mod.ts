@@ -1,4 +1,4 @@
 export { default as graphqlHttp, type Params } from "./graphql_http.ts";
 export { default as gqlFetch } from "./fetch.ts";
-export { createRequest } from "./requests.ts";
+export { createRequest, resolveRequest } from "./requests.ts";
 export { resolveResponse } from "./responses.ts";

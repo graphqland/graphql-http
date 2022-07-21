@@ -250,6 +250,7 @@ it(
       query: "query",
       variableValues: null,
       operationName: null,
+      extensions: null,
     });
   },
 );
@@ -270,6 +271,7 @@ it(
       query: "query",
       variableValues: null,
       operationName: null,
+      extensions: null,
     });
   },
 );
@@ -316,6 +318,7 @@ it(
         test: "test",
       },
       operationName: "query",
+      extensions: null,
     });
     expect(result[1]).toBeUndefined();
   },
@@ -528,6 +531,7 @@ it(describePostTests, `application/json`, async (t) => {
         query: "test",
         operationName: null,
         variableValues: null,
+        extensions: null,
       });
       expect(result[1]).toBeUndefined();
     },
@@ -549,6 +553,7 @@ it(describePostTests, `application/json`, async (t) => {
         query: "from body",
         operationName: null,
         variableValues: null,
+        extensions: null,
       });
       expect(result[1]).toBeUndefined();
     },
@@ -569,6 +574,7 @@ it(describePostTests, `application/json`, async (t) => {
         query: "from body",
         operationName: null,
         variableValues: null,
+        extensions: null,
       });
       expect(result[1]).toBeUndefined();
     },
@@ -608,6 +614,7 @@ it(describePostTests, `application/json`, async (t) => {
         query: "query",
         operationName: null,
         variableValues: null,
+        extensions: null,
       });
       expect(result[1]).toBeUndefined();
     },
@@ -628,6 +635,7 @@ it(describePostTests, `application/json`, async (t) => {
         query: "query",
         operationName: null,
         variableValues: { abc: [] },
+        extensions: null,
       });
       expect(result[1]).toBeUndefined();
     },
@@ -667,6 +675,7 @@ it(describePostTests, `application/json`, async (t) => {
         query: "query",
         operationName: "subscription",
         variableValues: null,
+        extensions: null,
       });
       expect(result[1]).toBeUndefined();
     },
@@ -707,7 +716,12 @@ it(
             },
           }),
         );
-        expect(result[0]).toEqual({ query: "test" });
+        expect(result[0]).toEqual({
+          query: "test",
+          operationName: null,
+          variableValues: null,
+          extensions: null,
+        });
         expect(result[1]).toBeUndefined();
       },
     );
@@ -723,7 +737,12 @@ it(
             },
           }),
         );
-        expect(result[0]).toEqual({ query: "test" });
+        expect(result[0]).toEqual({
+          query: "test",
+          operationName: null,
+          variableValues: null,
+          extensions: null,
+        });
         expect(result[1]).toBeUndefined();
       },
     );
@@ -740,7 +759,12 @@ it(
             },
           }),
         );
-        expect(result[0]).toEqual({ query: "test" });
+        expect(result[0]).toEqual({
+          query: "test",
+          operationName: null,
+          variableValues: null,
+          extensions: null,
+        });
         expect(result[1]).toBeUndefined();
       },
     );
@@ -757,7 +781,12 @@ it(
             },
           }),
         );
-        expect(result[0]).toEqual({ query: "from body" });
+        expect(result[0]).toEqual({
+          query: "from body",
+          operationName: null,
+          variableValues: null,
+          extensions: null,
+        });
         expect(result[1]).toBeUndefined();
       },
     );
