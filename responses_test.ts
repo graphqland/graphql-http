@@ -1,5 +1,237 @@
-import { isValidContentType, resolveResponse } from "./responses.ts";
-import { describe, expect, it } from "./dev_deps.ts";
+import {
+  createResponse,
+  isValidContentType,
+  resolveResponse,
+} from "./responses.ts";
+import { buildSchema, describe, expect, it, Status } from "./dev_deps.ts";
+
+const schema = buildSchema(`type Query {
+  hello: String!
+}
+`);
+
+function assertHeaderAppJson(headers: Headers): void {
+  expect(headers).toEqualIterable(
+    new Headers({
+      "content-type": "application/json; charset=UTF-8",
+    }),
+  );
+}
+
+function assertHeaderAppGraphqlJson(headers: Headers): void {
+  expect(headers).toEqualIterable(
+    new Headers({
+      "content-type": "application/graphql+json; charset=UTF-8",
+    }),
+  );
+}
+
+function assertStatusOK(status: number): asserts status is 200 {
+  expect(status).toBe(Status.OK);
+}
+
+function assertStatusBadRequest(status: number): asserts status is 200 {
+  expect(status).toBe(Status.BadRequest);
+}
+
+describe("createResponse", () => {
+  describe("application/json", () => {
+    const mimeType = "application/json";
+    it("should return status 200 when parse error has occurred", async () => {
+      const res = createResponse({
+        source: ``,
+        method: "POST",
+        schema,
+      }, {
+        mimeType,
+      });
+
+      assertStatusOK(res.status);
+      assertHeaderAppJson(res.headers);
+      await expect(res.json()).resolves.toEqual({
+        errors: [{
+          message: "Syntax Error: Unexpected <EOF>.",
+          locations: [{ "line": 1, "column": 1 }],
+        }],
+      });
+    });
+    it("should return status 200 when validate error has occurred", async () => {
+      const res = createResponse({
+        source: `query { fail }`,
+        method: "POST",
+        schema,
+      }, {
+        mimeType,
+      });
+
+      assertStatusOK(res.status);
+      assertHeaderAppJson(res.headers);
+      await expect(res.json()).resolves.toEqual({
+        errors: [
+          {
+            message: 'Cannot query field "fail" on type "Query".',
+            locations: [{ "line": 1, "column": 9 }],
+          },
+        ],
+      });
+    });
+    it("should return status 200 when execution error has occurred", async () => {
+      const res = createResponse({
+        source: `query { hello }`,
+        method: "POST",
+        schema,
+      }, {
+        mimeType,
+      });
+
+      assertStatusOK(res.status);
+      assertHeaderAppJson(res.headers);
+      await expect(res.json()).resolves.toEqual({
+        errors: [
+          {
+            message: "Cannot return null for non-nullable field Query.hello.",
+            locations: [{ "line": 1, "column": 9 }],
+            path: ["hello"],
+          },
+        ],
+        data: null,
+      });
+    });
+    it("should return status 200 when execution is complete", async () => {
+      const res = createResponse({
+        source: `query { hello }`,
+        method: "POST",
+        schema,
+      }, {
+        rootValue: {
+          hello: "world",
+        },
+        mimeType,
+      });
+
+      assertStatusOK(res.status);
+      assertHeaderAppJson(res.headers);
+      await expect(res.json()).resolves.toEqual({
+        data: { hello: "world" },
+      });
+    });
+
+    it("should return status 405 when method is GET and operation type is mutation", async () => {
+      const res = createResponse({
+        source: `mutation { hello }`,
+        method: "GET",
+        schema,
+      }, {
+        mimeType,
+      });
+
+      expect(res.status).toBe(Status.MethodNotAllowed);
+      assertHeaderAppJson(res.headers);
+      await expect(res.json()).resolves.toEqual({
+        errors: [
+          {
+            message:
+              "Invalid GraphQL operation. Can only perform a mutation operation from a POST request.",
+          },
+        ],
+      });
+    });
+    it("should return status 405 when method is GET and operation type is subscription", async () => {
+      const res = createResponse({
+        source: `subscription { hello }`,
+        method: "GET",
+        schema,
+      }, {
+        mimeType,
+      });
+
+      expect(res.status).toBe(Status.MethodNotAllowed);
+      assertHeaderAppJson(res.headers);
+      await expect(res.json()).resolves.toEqual({
+        errors: [
+          {
+            message:
+              "Invalid GraphQL operation. Can only perform a subscription operation from a POST request.",
+          },
+        ],
+      });
+    });
+  });
+
+  describe("application/graphql+json", () => {
+    it("should return status 400 when parse error has occurred", async () => {
+      const res = createResponse({
+        source: ``,
+        method: "POST",
+        schema,
+      });
+
+      assertStatusBadRequest(res.status);
+      assertHeaderAppGraphqlJson(res.headers);
+      await expect(res.json()).resolves.toEqual({
+        errors: [{
+          message: "Syntax Error: Unexpected <EOF>.",
+          locations: [{ "line": 1, "column": 1 }],
+        }],
+      });
+    });
+    it("should return status 400 when validate error has occurred", async () => {
+      const res = createResponse({
+        source: `query { fail }`,
+        method: "POST",
+        schema,
+      });
+
+      assertStatusBadRequest(res.status);
+      assertHeaderAppGraphqlJson(res.headers);
+      await expect(res.json()).resolves.toEqual({
+        errors: [
+          {
+            message: 'Cannot query field "fail" on type "Query".',
+            locations: [{ "line": 1, "column": 9 }],
+          },
+        ],
+      });
+    });
+    it("should return status 200 when execution error has occurred", async () => {
+      const res = createResponse({
+        source: `query { hello }`,
+        method: "POST",
+        schema,
+      });
+
+      assertStatusOK(res.status);
+      assertHeaderAppGraphqlJson(res.headers);
+      await expect(res.json()).resolves.toEqual({
+        errors: [
+          {
+            message: "Cannot return null for non-nullable field Query.hello.",
+            locations: [{ "line": 1, "column": 9 }],
+            path: ["hello"],
+          },
+        ],
+        data: null,
+      });
+    });
+    it("should return status 200 when execution is complete", async () => {
+      const res = createResponse({
+        source: `query { hello }`,
+        method: "POST",
+        schema,
+      }, {
+        rootValue: {
+          hello: "world",
+        },
+      });
+
+      assertStatusOK(res.status);
+      assertHeaderAppGraphqlJson(res.headers);
+      await expect(res.json()).resolves.toEqual({
+        data: { hello: "world" },
+      });
+    });
+  });
+});
 
 describe("isValidContentType", () => {
   it("should pass application/json and application/graphql+json", () => {

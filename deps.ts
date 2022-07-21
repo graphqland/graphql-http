@@ -51,11 +51,11 @@ export type PickBy<T, K> = {
 };
 
 export type PickRequired<T> = {
-  [k in keyof T as T[k] extends Required<T>[k] ? k : never]: T[k];
+  [k in keyof T as Record<never, never> extends Pick<T, k> ? never : k]: T[k];
 };
 
 export type PickPartial<T> = {
-  [K in keyof T as Record<never, never> extends Pick<T, K> ? K : never]: T[K];
+  [k in keyof T as Record<never, never> extends Pick<T, k> ? k : never]: T[k];
 };
 
 export type jsonObject = {

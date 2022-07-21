@@ -19,24 +19,24 @@ import { APPLICATION_GRAPHQL_JSON, APPLICATION_JSON } from "./constants.ts";
 import { mergeInit } from "./utils.ts";
 
 export type Params = {
-  contentType: ApplicationGraphQLJson | ApplicationJson;
+  mimeType: ApplicationGraphQLJson | ApplicationJson;
 } & ExecutionResult;
 
-export function createResponse(
-  { contentType, errors, extensions, data }: Params,
+export function createResponseFromResult(
+  { mimeType, errors, extensions, data }: Params,
 ): [data: Response] | [data: undefined, err: TypeError] {
   const [resultStr, err] = stringify({ errors, extensions, data });
 
   if (err) {
     return [, err];
   }
-  switch (contentType) {
+  switch (mimeType) {
     case APPLICATION_JSON: {
       return [
         new Response(resultStr, {
           status: Status.OK,
           headers: {
-            "content-type": withCharset(contentType),
+            "content-type": withCharset(mimeType),
           },
         }),
       ];
@@ -48,7 +48,7 @@ export function createResponse(
         new Response(resultStr, {
           status,
           headers: {
-            "content-type": withCharset(contentType),
+            "content-type": withCharset(mimeType),
           },
         }),
       ];
@@ -60,16 +60,54 @@ export function withCharset<T extends string>(value: T): `${T}; charset=UTF-8` {
   return `${value}; charset=UTF-8`;
 }
 
-export function createResponseFrom(
-  { source, contentType, operationName, method, schema, variableValues }:
-    & GraphQLArgs
-    & {
-      contentType: ApplicationGraphQLJson | ApplicationJson;
-      method: string;
-    },
+import { PickPartial, PickRequired } from "./deps.ts";
+
+type ResponseParams = PickRequired<GraphQLArgs> & {
+  method: "GET" | "POST";
+};
+
+type ResponseOptions = PickPartial<GraphQLArgs> & {
+  mimeType: ApplicationGraphQLJson | ApplicationJson;
+};
+
+/**
+ * Create a GraphQL over HTTP compliant `Response` object.
+ * ```ts
+ * import {
+ *   createResponse,
+ * } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+ * import { buildSchema } from "https://esm.sh/graphql@$VERSION";
+ *
+ * const schema = buildSchema(`query {
+ *   hello: String!
+ * }`);
+ *
+ * const res = createResponse({
+ *   schema,
+ *   source: `query { hello }`,
+ *   mimeType: "application/graphql+json",
+ *   method: "POST",
+ * }, {
+ *   rootValue: {
+ *     hello: "world",
+ *   },
+ * });
+ * ```
+ */
+export function createResponse(
+  { source, method, schema }: Readonly<ResponseParams>,
+  {
+    operationName,
+    variableValues,
+    rootValue,
+    contextValue,
+    fieldResolver,
+    typeResolver,
+    mimeType = "application/graphql+json",
+  }: Readonly<Partial<ResponseOptions>> = {},
 ): Response {
-  const ContentType = withCharset(contentType);
-  const errorStatus = getErrorStatus(contentType);
+  const ContentType = withCharset(mimeType);
+  const errorStatus = getErrorStatus(mimeType);
 
   const parseResult = tryCatchSync(() => parse(source));
   if (!parseResult[0]) {
@@ -119,15 +157,19 @@ export function createResponseFrom(
 
   const [executionResult, executionErrors] = tryCatchSync(() =>
     executeSync({
-      variableValues,
-      operationName,
       schema,
       document: documentAST,
+      operationName,
+      variableValues,
+      rootValue,
+      contextValue,
+      fieldResolver,
+      typeResolver,
     })
   );
   if (executionResult) {
-    const [data, err] = createResponse({
-      contentType,
+    const [data, err] = createResponseFromResult({
+      mimeType,
       ...executionResult,
     });
 

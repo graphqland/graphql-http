@@ -11,7 +11,7 @@ import {
 } from "./deps.ts";
 import {
   createJSONResponse,
-  createResponseFrom,
+  createResponse,
   createResult,
   withCharset,
 } from "./responses.ts";
@@ -145,13 +145,14 @@ export default function graphqlHttp(
     }
     const { query: source, variableValues, operationName } = data;
 
-    const res = createResponseFrom({
+    const res = createResponse({
       schema,
       source,
+      contentType: mediaType,
+      method: req.method as "GET" | "POST",
+    }, {
       variableValues,
       operationName,
-      contentType: mediaType,
-      method: req.method,
       ...rest,
     });
 

@@ -438,6 +438,54 @@ type Result<
 - `SyntaxError`
 - `TypeError`
 
+### createResponse
+
+Create a GraphQL over HTTP compliant `Response` object.
+
+#### Example
+
+```ts
+import {
+  createResponse,
+} from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+import { buildSchema } from "https://esm.sh/graphql@$VERSION";
+
+const schema = buildSchema(`query {
+  hello: String!
+}`);
+
+const res = createResponse({
+  schema,
+  source: `query { hello }`,
+  mimeType: "application/graphql+json",
+  method: "POST",
+}, {
+  rootValue: {
+    hello: "world",
+  },
+});
+```
+
+#### Parameters
+
+| N | Name           |      Required / Default      | Description                                              |
+| - | -------------- | :--------------------------: | -------------------------------------------------------- |
+| 1 | params         |      :white_check_mark:      | Parameters.                                              |
+|   | schema         |      :white_check_mark:      | `GraphQLSchema`                                          |
+|   | method         |      :white_check_mark:      | `GET` &#124; `POST`                                      |
+| 2 | options        |              -               | options.                                                 |
+|   | operationName  |              -               | `string` &#124; `null`                                   |
+|   | variableValues |              -               | `{ readonly [variable: string]: unknown }` &#124; `null` |
+|   | contextValue   |              -               | `unknown`                                                |
+|   | rootValue      |              -               | `unknown`                                                |
+|   | fieldResolver  |              -               | `GraphQLFieldResolver<any, any>` &#124; `null`           |
+|   | typeResolver   |              -               | `GraphQLTypeResolver<any, any>` &#124; `null`            |
+|   | mimeType       | `"application/graphql+json"` | `"application/graphql+json"`&#124; `application/json`    |
+
+#### ReturnType
+
+`Response`
+
 ## Recipes
 
 - [std/http](./examples/std_http/README.md)
