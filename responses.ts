@@ -85,7 +85,6 @@ type ResponseOptions = PickPartial<GraphQLArgs> & {
  * const res = createResponse({
  *   schema,
  *   source: `query { hello }`,
- *   mimeType: "application/graphql+json",
  *   method: "POST",
  * }, {
  *   rootValue: {

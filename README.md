@@ -430,7 +430,6 @@ const schema = buildSchema(`query {
 const res = createResponse({
   schema,
   source: `query { hello }`,
-  mimeType: "application/graphql+json",
   method: "POST",
 }, {
   rootValue: {
