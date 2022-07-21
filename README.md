@@ -4,7 +4,7 @@
 [![deno doc](https://img.shields.io/badge/deno-doc-black)](https://doc.deno.land/https/deno.land/x/graphql_http/mod.ts)
 [![codecov](https://codecov.io/gh/TomokiMiyauci/graphql-http/branch/main/graph/badge.svg?token=0Dq5iqtnjw)](https://codecov.io/gh/TomokiMiyauci/graphql-http)
 
-GraphQL on HTTP middleware with built-in validations and GraphQL playground
+GraphQL client and handler compliant with GraphQL over HTTP specification
 
 ## Features
 
@@ -15,17 +15,6 @@ GraphQL on HTTP middleware with built-in validations and GraphQL playground
   public libraries
 - Built-in [graphql-playground](https://github.com/graphql/graphql-playground)
 - Universal
-
-## What
-
-It provides GraphQL on HTTP middleware that can be embedded in any server.
-
-Essentially, it takes a `Request` object and returns a `Response` object.
-
-In the meantime, it performs HTTP request validation, processes GraphQL, and
-response object with the appropriate status code and message.
-
-There is also a built-in GraphQL Playground.
 
 ## Example
 
