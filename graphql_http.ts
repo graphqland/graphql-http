@@ -96,6 +96,7 @@ export type RequestContext = {
  *
  * serve(handler);
  * ```
+ * @deprecated use {@link gqlHandler} instead
  */
 export default function graphqlHttp(
   {
