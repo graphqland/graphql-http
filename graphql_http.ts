@@ -119,8 +119,8 @@ export default function graphqlHttp(
 
   async function process(req: Request): Promise<[Response, RequestContext]> {
     const requestCtx: RequestContext = { request: req, playground: false };
-    const mediaType = getMediaType(req);
-    const preferContentType = withCharset(mediaType);
+    const mimeType = getMediaType(req);
+    const preferContentType = withCharset(mimeType);
 
     const [data, err] = await resolveRequest(req);
     if (!data) {
@@ -148,9 +148,9 @@ export default function graphqlHttp(
     const res = createResponse({
       schema,
       source,
-      contentType: mediaType,
       method: req.method as "GET" | "POST",
     }, {
+      mimeType: mimeType,
       variableValues,
       operationName,
       ...rest,
