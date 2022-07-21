@@ -29,42 +29,54 @@ There is also a built-in GraphQL Playground.
 
 ## Example
 
-A simple example of creating a GraphQL server.
+A simple example of creating a GraphQL server and GraphQL client.
 
 [std/http](https://deno.land/std/http) +
-[grpahql.js](https://github.com/graphql/graphql-js)
+[graphql.js](https://github.com/graphql/graphql-js)
+
+server:
 
 ```ts
-import { graphqlHttp } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
-import {
-  Handler,
-  serve,
-  Status,
-} from "https://deno.land/std@$VERSION/http/mod.ts";
+import { gqlHandler } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+import { serve, Status } from "https://deno.land/std@$VERSION/http/mod.ts";
 import { buildSchema } from "https://esm.sh/graphql@$VERSION";
 
-const graphqlResponse = graphqlHttp({
-  schema: buildSchema(`type Query {
+const schema = buildSchema(`type Query {
     hello: String!
-  }`),
+  }`);
+
+const handler = gqlHandler(schema, {
   rootValue: {
-    hello: () => "world",
+    hello: "world",
   },
   playground: true,
 });
 
-const handler: Handler = (req) => {
+serve((req) => {
   const { pathname } = new URL(req.url);
   if (pathname === "/graphql") {
-    return graphqlResponse(req);
+    return handler(req);
   }
   return new Response("Not Found", {
     status: Status.NotFound,
   });
-};
-
-serve(handler);
+});
+// Listening on <BASE_URL>
 ```
+
+client:
+
+```ts
+import { gqlFetch } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+
+const { data, errors, extensions } = await gqlFetch({
+  url: `<BASE_URL>/graphql`,
+  query: `query { hello }`,
+});
+```
+
+or you can access `<BASE_URL>/graphql` in your browser and use
+[graphql-playground](https://github.com/graphql/graphql-playground).
 
 ## Spec
 
@@ -180,19 +192,19 @@ specification. You can customize this response.
 Example of adding a header:
 
 ```ts
-import { graphqlHttp } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+import { gqlHandler } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
 import { buildSchema } from "https://esm.sh/graphql@$VERSION";
 
-const responser = graphqlHttp({
+const schema = buildSchema(`type Query {
+    hello: String
+  }`);
+const responser = gqlHandler(schema, {
   response: (res, ctx) => {
     if (ctx.request.method === "GET") {
       res.headers.set("Cache-Control", "max-age=604800");
     }
     return res;
   },
-  schema: buildSchema(`type Query {
-    hello: String
-  }`),
 });
 ```
 
@@ -210,25 +222,46 @@ or [Websocket](https://developer.mozilla.org/en-US/docs/Web/API/Websockets_API).
 
 ## API
 
-### graphqlHttp
+### gqlHandler
 
-Make a GraphQL `Response` Object that validate to `Request` Object.
+Create HTTP handler what handle GraphQL over HTTP request.
+
+#### Example
+
+```ts
+import { gqlHandler } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+import { buildSchema } from "https://esm.sh/graphql@$VERSION";
+
+const schema = buildSchema(`type Query {
+    hello: String!
+  }`);
+
+const handler = gqlHandler(schema, {
+  rootValue: {
+    hello: "world",
+  },
+  playground: true,
+});
+const req = new Request("<ENDPOINT>");
+const res = await handler(req);
+```
 
 #### Parameters
 
-| Name              |     Required / Default     | Description                                                                                                                                                                                                                                                                            |
-| ----------------- | :------------------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| schema            |     :white_check_mark:     | `GraphQLSchema`<br>The GraphQL type system to use when validating and executing a query.                                                                                                                                                                                               |
-| source            |             -              | `Source` &#124; `string`<br>A GraphQL language formatted string representing the requested operation.                                                                                                                                                                                  |
-| rootValue         |             -              | `unknown`<br>The value provided as the first argument to resolver functions on the top level type (e.g. the query object type).                                                                                                                                                        |
-| contextValue      |             -              | `unknown`<br>The context value is provided as an argument to resolver functions after field arguments. It is used to pass shared information useful at any point during executing this query, for example the currently logged in user and connections to databases or other services. |
-| variableValues    |             -              | `<{ readonly [variable: string: unknown; }>` &#124; `null` <br>A mapping of variable name to runtime value to use for all variables defined in the requestString.                                                                                                                      |
-| operationName     |             -              | `string` &#124; `null`<br>The name of the operation to use if requestString contains multiple possible operations. Can be omitted if requestString contains only one operation.                                                                                                        |
-| fieldResolver     |             -              | `GraphQLFieldResolver<any, any>` &#124; `null`<br>A resolver function to use when one is not provided by the schema. If not provided, the default field resolver is used (which looks for a value or method on the source value with the field's name).                                |
-| typeResolver      |             -              | `GraphQLTypeResolver<any, any>` &#124; `null`<br>A type resolver function to use when none is provided by the schema. If not provided, the default type resolver is used (which looks for a `__typename` field or alternatively calls the `isTypeOf` method).                          |
-| response          |             -              | `(req: Request, ctx: RequestContext) =>` `Promise<Response>` &#124; `Response`<br> Overwrite actual response.                                                                                                                                                                          |
-| playground        |             -              | `boolean`<br>Whether enabled [graphql-playground](https://github.com/graphql/graphql-playground) or not.                                                                                                                                                                               |
-| playgroundOptions | `{ endpoint: "/graphql" }` | `RenderPageOptions`<br> [graphql-playground](https://github.com/graphql/graphql-playground) options.                                                                                                                                                                                   |
+| N | Name              |     Required / Default     | Description                                                                                                                                                                                                                                                                            |
+| - | ----------------- | :------------------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | schema            |     :white_check_mark:     | `GraphQLSchema`<br>The GraphQL type system to use when validating and executing a query.                                                                                                                                                                                               |
+| 2 | options           |             -              | handler options                                                                                                                                                                                                                                                                        |
+|   | source            |             -              | `Source` &#124; `string`<br>A GraphQL language formatted string representing the requested operation.                                                                                                                                                                                  |
+|   | rootValue         |             -              | `unknown`<br>The value provided as the first argument to resolver functions on the top level type (e.g. the query object type).                                                                                                                                                        |
+|   | contextValue      |             -              | `unknown`<br>The context value is provided as an argument to resolver functions after field arguments. It is used to pass shared information useful at any point during executing this query, for example the currently logged in user and connections to databases or other services. |
+|   | variableValues    |             -              | `<{ readonly [variable: string: unknown; }>` &#124; `null` <br>A mapping of variable name to runtime value to use for all variables defined in the requestString.                                                                                                                      |
+|   | operationName     |             -              | `string` &#124; `null`<br>The name of the operation to use if requestString contains multiple possible operations. Can be omitted if requestString contains only one operation.                                                                                                        |
+|   | fieldResolver     |             -              | `GraphQLFieldResolver<any, any>` &#124; `null`<br>A resolver function to use when one is not provided by the schema. If not provided, the default field resolver is used (which looks for a value or method on the source value with the field's name).                                |
+|   | typeResolver      |             -              | `GraphQLTypeResolver<any, any>` &#124; `null`<br>A type resolver function to use when none is provided by the schema. If not provided, the default type resolver is used (which looks for a `__typename` field or alternatively calls the `isTypeOf` method).                          |
+|   | response          |             -              | `(req: Request, ctx: RequestContext) =>` `Promise<Response>` &#124; `Response`<br> Overwrite actual response.                                                                                                                                                                          |
+|   | playground        |             -              | `boolean`<br>Whether enabled [graphql-playground](https://github.com/graphql/graphql-playground) or not.                                                                                                                                                                               |
+|   | playgroundOptions | `{ endpoint: "/graphql" }` | `RenderPageOptions`<br> [graphql-playground](https://github.com/graphql/graphql-playground) options.                                                                                                                                                                                   |
 
 #### ReturnType
 
