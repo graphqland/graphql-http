@@ -1,3 +1,12 @@
+# [1.0.0-beta.12](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.11...1.0.0-beta.12) (2022-07-21)
+
+
+### Features
+
+* add `gqlHandler` that manage GraphQL over HTTP request ([a356946](https://github.com/TomokiMiyauci/graphql-http/commit/a356946ef240f07da3ec217c30a5d6792612797b))
+* export `createResponse` function that create GraphQL over HTTP compliant `Response` object ([3ad3313](https://github.com/TomokiMiyauci/graphql-http/commit/3ad3313bf18fed201768b26f8a01a509392bf405))
+* export `resolveRequest` function that take out graphql parameters from `Request` object safety ([53b04ae](https://github.com/TomokiMiyauci/graphql-http/commit/53b04ae814db5a56ae8181ad5da7ea98f3541f7e))
+
 # [1.0.0-beta.11](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.10...1.0.0-beta.11) (2022-07-20)
 
 
