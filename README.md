@@ -26,7 +26,7 @@ A simple example of creating a GraphQL server and GraphQL client.
 server:
 
 ```ts
-import { gqlHandler } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+import { createHandler } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
 import { serve, Status } from "https://deno.land/std@$VERSION/http/mod.ts";
 import { buildSchema } from "https://esm.sh/graphql@$VERSION";
 
@@ -34,7 +34,7 @@ const schema = buildSchema(`type Query {
     hello: String!
   }`);
 
-const handler = gqlHandler(schema, {
+const handler = createHandler(schema, {
   rootValue: {
     hello: "world",
   },
@@ -181,13 +181,13 @@ specification. You can customize this response.
 Example of adding a header:
 
 ```ts
-import { gqlHandler } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+import { createHandler } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
 import { buildSchema } from "https://esm.sh/graphql@$VERSION";
 
 const schema = buildSchema(`type Query {
     hello: String
   }`);
-const handler = gqlHandler(schema, {
+const handler = createHandler(schema, {
   response: (res, ctx) => {
     if (ctx.request.method === "GET") {
       res.headers.set("Cache-Control", "max-age=604800");
@@ -211,21 +211,21 @@ or [Websocket](https://developer.mozilla.org/en-US/docs/Web/API/Websockets_API).
 
 ## API
 
-### gqlHandler
+### createHandler
 
 Create HTTP handler what handle GraphQL over HTTP request.
 
 #### Example
 
 ```ts
-import { gqlHandler } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+import { createHandler } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
 import { buildSchema } from "https://esm.sh/graphql@$VERSION";
 
 const schema = buildSchema(`type Query {
     hello: String!
   }`);
 
-const handler = gqlHandler(schema, {
+const handler = createHandler(schema, {
   rootValue: {
     hello: "world",
   },
