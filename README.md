@@ -515,7 +515,7 @@ Compress GraphQL query.
 
 ```ts
 import { gql } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
-import { assertEquals } from "https://deno.land/std@$VERSION/mod.ts";
+import { assertEquals } from "https://deno.land/std@$VERSION/testing/asserts.ts";
 
 const query = gql`query Test {
   hello
