@@ -15,7 +15,7 @@ export const makeOptions = (version: string): BuildOptions => ({
     name: "gql-http",
     version,
     description:
-      "GraphQL on HTTP middleware with built-in validations and GraphQL playground",
+      "GraphQL client and handler compliant with GraphQL over HTTP specification",
     keywords: [
       "graphql",
       "http",

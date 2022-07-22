@@ -1,3 +1,54 @@
+# [1.0.0-beta.14](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.13...1.0.0-beta.14) (2022-07-22)
+
+
+### Bug Fixes
+
+* add allow header when response status is 405 ([1355e48](https://github.com/TomokiMiyauci/graphql-http/commit/1355e48620d13a45cee2e4b600bc9eaf4b901f00))
+
+
+### Features
+
+* add allow header when the HTTP request is not supported ([2f057be](https://github.com/TomokiMiyauci/graphql-http/commit/2f057be8452aa63f392897321cceaf9ff66dc00d))
+* remove deprecated `graphqlHttp` function ([b9e6ae1](https://github.com/TomokiMiyauci/graphql-http/commit/b9e6ae17e28d508f9190a092cc6b03bfe1c963f7))
+* rename `gqlHandler` to `createHandler` ([e0167fc](https://github.com/TomokiMiyauci/graphql-http/commit/e0167fc33f502d2225b7345489206705208dc7f1))
+
+# [1.0.0-beta.13](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.12...1.0.0-beta.13) (2022-07-22)
+
+
+### Features
+
+* add `gql` function that compress graphql query ([59eacbe](https://github.com/TomokiMiyauci/graphql-http/commit/59eacbe49ea8014bf7a8926486f05af57899d952))
+
+# [1.0.0-beta.12](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.11...1.0.0-beta.12) (2022-07-21)
+
+
+### Features
+
+* add `gqlHandler` that manage GraphQL over HTTP request ([a356946](https://github.com/TomokiMiyauci/graphql-http/commit/a356946ef240f07da3ec217c30a5d6792612797b))
+* export `createResponse` function that create GraphQL over HTTP compliant `Response` object ([3ad3313](https://github.com/TomokiMiyauci/graphql-http/commit/3ad3313bf18fed201768b26f8a01a509392bf405))
+* export `resolveRequest` function that take out graphql parameters from `Request` object safety ([53b04ae](https://github.com/TomokiMiyauci/graphql-http/commit/53b04ae814db5a56ae8181ad5da7ea98f3541f7e))
+
+# [1.0.0-beta.11](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.10...1.0.0-beta.11) (2022-07-20)
+
+
+### Features
+
+* export `resolveResponse` that de-serialize graphql response safety ([6aaf20c](https://github.com/TomokiMiyauci/graphql-http/commit/6aaf20c7a7ee3e0367bf08d16c5e9a228604249d))
+
+# [1.0.0-beta.10](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.9...1.0.0-beta.10) (2022-07-20)
+
+
+### Features
+
+* export `createRequest` function that create `Request` what include GraphQL header and body ([405ce48](https://github.com/TomokiMiyauci/graphql-http/commit/405ce4806f7b3901680a40d662b34de82670db5f))
+
+# [1.0.0-beta.9](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.8...1.0.0-beta.9) (2022-07-20)
+
+
+### Features
+
+* add graphql over http client ([26525b8](https://github.com/TomokiMiyauci/graphql-http/commit/26525b8f0a23d0f9d54e4d3a073f4f88f1319824))
+
 # [1.0.0-beta.8](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.7...1.0.0-beta.8) (2022-07-18)
 
 

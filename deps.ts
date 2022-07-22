@@ -1,12 +1,17 @@
 export {
   buildSchema,
+  execute,
+  executeSync,
   type ExecutionResult,
   getOperationAST,
   graphql,
   type GraphQLArgs,
   GraphQLError,
+  type GraphQLFieldResolver,
   GraphQLSchema,
+  type GraphQLTypeResolver,
   parse,
+  Source,
   specifiedRules,
   validate,
   validateSchema,
@@ -14,28 +19,51 @@ export {
 export {
   contentType,
   parseMediaType,
-} from "https://deno.land/std@0.147.0/media_types/mod.ts";
-export { accepts } from "https://deno.land/std@0.147.0/http/negotiation.ts";
+} from "https://deno.land/std@0.148.0/media_types/mod.ts";
+export { accepts } from "https://deno.land/std@0.148.0/http/negotiation.ts";
 export {
   isNil,
   isNull,
   isObject,
   isString,
+  isUndefined,
 } from "https://deno.land/x/isx@v1.0.0-beta.17/mod.ts";
 export {
   JSON,
   type json,
+  stringify,
 } from "https://deno.land/x/pure_json@1.0.0-beta.1/mod.ts";
+import { type json } from "https://deno.land/x/pure_json@1.0.0-beta.1/mod.ts";
 export {
   type RenderPageOptions,
   renderPlaygroundPage,
 } from "https://esm.sh/graphql-playground-html@1.6.30";
-export { Status } from "https://deno.land/std@0.148.0/http/mod.ts";
+export {
+  createHttpError,
+  HttpError,
+  Status,
+} from "https://deno.land/std@0.148.0/http/mod.ts";
 
 export type PartialBy<T, K = keyof T> =
   Omit<T, K & keyof T> & Partial<Pick<T, K & keyof T>> extends infer U
     ? { [K in keyof U]: U[K] }
     : never;
+
+export type PickBy<T, K> = {
+  [k in keyof T as (K extends T[k] ? k : never)]: T[k];
+};
+
+export type PickRequired<T> = {
+  [k in keyof T as Record<never, never> extends Pick<T, k> ? never : k]: T[k];
+};
+
+export type PickPartial<T> = {
+  [k in keyof T as Record<never, never> extends Pick<T, k> ? k : never]: T[k];
+};
+
+export type jsonObject = {
+  [k: string]: json;
+};
 
 export function tryCatchSync<T>(
   fn: () => T,

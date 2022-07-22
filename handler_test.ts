@@ -11,8 +11,24 @@ import {
   queryString,
   Status,
 } from "./dev_deps.ts";
-import graphqlHttp from "./graphql_http.ts";
+import createHandler from "./handler.ts";
 import { MIME_TYPE } from "./constants.ts";
+
+function assertHeaderAppGraphqlJson(headers: Headers): void {
+  expect(headers).toEqualIterable(
+    new Headers({
+      "content-type": "application/graphql+json; charset=UTF-8",
+    }),
+  );
+}
+
+function assertHeaderAppJson(headers: Headers): void {
+  expect(headers).toEqualIterable(
+    new Headers({
+      "content-type": "application/json; charset=UTF-8",
+    }),
+  );
+}
 
 const QueryRootType = new GraphQLObjectType({
   name: "QueryRoot",
@@ -62,20 +78,44 @@ const schema = new GraphQLSchema({
   }),
 });
 
-const responser = graphqlHttp({
-  schema,
-});
+const handler = createHandler(schema);
 
 const BASE_URL = "https://test.test";
 
-const describeTests = describe("graphqlHttp");
+const describeTests = describe("createHandler");
 
 it("should throw error when validation of schema is fail", () => {
-  expect(() =>
-    graphqlHttp({
-      schema: buildSchema(`type Test { hello: String }`),
-    })
-  ).toThrow("Schema validation error");
+  expect(() => createHandler(buildSchema(`type Test { hello: String }`)))
+    .toThrow(
+      "Schema validation error",
+    );
+});
+
+it("should error when HTTP request method is unsupported", async () => {
+  const res = await handler(
+    new Request(queryString(BASE_URL, {}), {
+      headers: {
+        "accept": "plain/text",
+      },
+      method: "OPTIONS",
+    }),
+  );
+
+  expect(res.status).toBe(Status.MethodNotAllowed);
+  expect(res.headers).toEqualIterable(
+    new Headers({
+      allow: "GET,POST",
+      "content-type": contentType(".json"),
+    }),
+  );
+  await expect(res.json()).resolves.toEqual({
+    errors: [
+      {
+        message:
+          "Invalid HTTP method. GraphQL only supports GET and POST requests.",
+      },
+    ],
+  });
 });
 
 describe("HTTP method is GET", () => {
@@ -83,7 +123,7 @@ describe("HTTP method is GET", () => {
     describeTests,
     `should return 406 when "Accept" header does not include application/graphql+json or application/json`,
     async () => {
-      const res = await responser(
+      const res = await handler(
         new Request(queryString(BASE_URL, {}), {
           headers: {
             "accept": "plain/text",
@@ -92,9 +132,7 @@ describe("HTTP method is GET", () => {
       );
 
       expect(res.status).toBe(Status.NotAcceptable);
-      expect(res.headers.get("content-type")).toEqual(
-        contentType(".json"),
-      );
+      assertHeaderAppJson(res.headers);
       await expect(res.json()).resolves.toEqual({
         errors: [{
           message:
@@ -108,14 +146,12 @@ describe("HTTP method is GET", () => {
     describeTests,
     "should return 400 when query string is not exists",
     async () => {
-      const res = await responser(
+      const res = await handler(
         new BaseRequest(new URL(BASE_URL).toString()),
       );
 
       expect(res.status).toBe(Status.BadRequest);
-      expect(res.headers.get("content-type")).toEqual(
-        MIME_TYPE,
-      );
+      assertHeaderAppGraphqlJson(res.headers);
       await expect(res.json()).resolves.toEqual({
         errors: [{ message: `The parameter is required. "query"` }],
       });
@@ -126,15 +162,18 @@ describe("HTTP method is GET", () => {
     describeTests,
     `should return 405 when query is not "query"`,
     async () => {
-      const res = await responser(
+      const res = await handler(
         new BaseRequest(queryString(BASE_URL, {
           query: "mutation { hello }",
         })),
       );
 
       expect(res.status).toBe(Status.MethodNotAllowed);
-      expect(res.headers.get("content-type")).toEqual(
-        MIME_TYPE,
+      expect(res.headers).toEqualIterable(
+        new Headers({
+          "content-type": MIME_TYPE,
+          allow: "POST",
+        }),
       );
       await expect(res.json()).resolves.toEqual({
         errors: [{
@@ -149,7 +188,7 @@ describe("HTTP method is GET", () => {
     describeTests,
     `should return 405 when operation is not "query"`,
     async () => {
-      const res = await responser(
+      const res = await handler(
         new BaseRequest(queryString(BASE_URL, {
           query: `
           query { hello }
@@ -160,8 +199,11 @@ describe("HTTP method is GET", () => {
       );
 
       expect(res.status).toBe(Status.MethodNotAllowed);
-      expect(res.headers.get("content-type")).toEqual(
-        MIME_TYPE,
+      expect(res.headers).toEqualIterable(
+        new Headers({
+          "content-type": MIME_TYPE,
+          allow: "POST",
+        }),
       );
       await expect(res.json()).resolves.toEqual({
         errors: [{
@@ -178,12 +220,10 @@ describe("HTTP method is GET", () => {
       BASE_URL,
     );
     const req = new BaseRequest(url.toString());
-    const res = await responser(req);
+    const res = await handler(req);
 
     expect(res.status).toBe(Status.OK);
-    expect(res.headers.get("content-type")).toEqual(
-      MIME_TYPE,
-    );
+    assertHeaderAppGraphqlJson(res.headers);
     await expect(res.json()).resolves.toEqual({
       data: { test: "Hello World" },
     });
@@ -195,12 +235,10 @@ describe("HTTP method is GET", () => {
       variables: `{"who":"Dolly"}`,
     });
     const req = new BaseRequest(url);
-    const res = await responser(req);
+    const res = await handler(req);
 
     expect(res.status).toBe(Status.OK);
-    expect(res.headers.get("content-type")).toEqual(
-      MIME_TYPE,
-    );
+    assertHeaderAppGraphqlJson(res.headers);
     await expect(res.json()).resolves.toEqual({
       data: { test: "Hello Dolly" },
     });
@@ -219,7 +257,7 @@ describe("HTTP method is GET", () => {
       operationName: "helloWorld",
     });
 
-    const res = await responser(new BaseRequest(url));
+    const res = await handler(new BaseRequest(url));
     expect(res.status).toBe(Status.OK);
     await expect(res.json()).resolves.toEqual({
       data: {
@@ -238,7 +276,7 @@ describe("HTTP method is GET", () => {
     `,
     });
 
-    const res = await responser(new BaseRequest(url));
+    const res = await handler(new BaseRequest(url));
 
     expect(res.status).toEqual(Status.OK);
     await expect(res.json()).resolves.toEqual({
@@ -254,7 +292,7 @@ describe("HTTP method is POST", () => {
     describeTests,
     `should return 406 when "Accept" header does not include application/graphql+json or application/json`,
     async () => {
-      const res = await responser(
+      const res = await handler(
         new Request(queryString(BASE_URL, {}), {
           headers: {
             "accept": "plain/text",
@@ -264,8 +302,10 @@ describe("HTTP method is POST", () => {
       );
 
       expect(res.status).toBe(Status.NotAcceptable);
-      expect(res.headers.get("content-type")).toEqual(
-        contentType(".json"),
+      expect(res.headers).toEqualIterable(
+        new Headers({
+          "content-type": contentType(".json"),
+        }),
       );
       await expect(res.json()).resolves.toEqual({
         errors: [{
@@ -284,10 +324,10 @@ describe("HTTP method is POST", () => {
         "content-type": contentType(".json"),
       },
     });
-    const res = await responser(req);
+    const res = await handler(req);
 
     expect(res.status).toBe(Status.OK);
-    expect(res.headers.get("content-type")).toBe(contentType(MIME_TYPE));
+    assertHeaderAppGraphqlJson(res.headers);
     expect(res.json()).resolves.toEqual({ data: { test: "Hello World" } });
   });
 
@@ -301,10 +341,10 @@ describe("HTTP method is POST", () => {
         "content-type": contentType(".json"),
       },
     });
-    const res = await responser(req);
+    const res = await handler(req);
 
     expect(res.status).toBe(Status.OK);
-    expect(res.headers.get("content-type")).toBe(contentType(MIME_TYPE));
+    assertHeaderAppGraphqlJson(res.headers);
     expect(res.json()).resolves.toEqual({
       data: { writeTest: { test: "Hello World" } },
     });
@@ -314,10 +354,10 @@ describe("HTTP method is POST", () => {
     const req = new BaseRequest(BASE_URL, {
       method: "POST",
     });
-    const res = await responser(req);
+    const res = await handler(req);
 
     expect(res.status).toBe(Status.BadRequest);
-    expect(res.headers.get("content-type")).toBe(contentType(MIME_TYPE));
+    assertHeaderAppGraphqlJson(res.headers);
     expect(res.json()).resolves.toEqual({
       errors: [{ message: 'The header is required. "Content-Type"' }],
     });
@@ -330,10 +370,10 @@ describe("HTTP method is POST", () => {
         "content-type": contentType(".json"),
       },
     });
-    const res = await responser(req);
+    const res = await handler(req);
 
     expect(res.status).toBe(Status.BadRequest);
-    expect(res.headers.get("content-type")).toBe(contentType(MIME_TYPE));
+    assertHeaderAppGraphqlJson(res.headers);
     expect(res.json()).resolves.toEqual({
       errors: [{
         message: "The message body is invalid. Invalid JSON format.",
@@ -352,10 +392,10 @@ describe("HTTP method is POST", () => {
         "content-type": contentType(".json"),
       },
     });
-    const res = await responser(req);
+    const res = await handler(req);
 
     expect(res.status).toBe(Status.OK);
-    expect(res.headers.get("content-type")).toBe(contentType(MIME_TYPE));
+    assertHeaderAppGraphqlJson(res.headers);
     expect(res.json()).resolves.toEqual({ data: { test: "Hello World" } });
   });
 
@@ -371,10 +411,10 @@ describe("HTTP method is POST", () => {
       },
     });
 
-    const res = await responser(req);
+    const res = await handler(req);
 
     expect(res.status).toBe(Status.OK);
-    expect(res.headers.get("content-type")).toBe(contentType(MIME_TYPE));
+    assertHeaderAppGraphqlJson(res.headers);
     expect(res.json()).resolves.toEqual({ data: { test: "Hello Dolly" } });
   });
 });
