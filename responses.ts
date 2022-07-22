@@ -134,6 +134,7 @@ export function createResponse(
       status: Status.MethodNotAllowed,
       headers: {
         "content-type": ContentType,
+        allow: "POST",
       },
     });
 

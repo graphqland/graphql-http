@@ -3,7 +3,14 @@ import {
   isValidContentType,
   resolveResponse,
 } from "./responses.ts";
-import { buildSchema, describe, expect, it, Status } from "./dev_deps.ts";
+import {
+  buildSchema,
+  contentType,
+  describe,
+  expect,
+  it,
+  Status,
+} from "./dev_deps.ts";
 
 const schema = buildSchema(`type Query {
   hello: String!
@@ -126,7 +133,12 @@ describe("createResponse", () => {
       });
 
       expect(res.status).toBe(Status.MethodNotAllowed);
-      assertHeaderAppJson(res.headers);
+      expect(res.headers).toEqualIterable(
+        new Headers({
+          "content-type": contentType(".json"),
+          allow: "POST",
+        }),
+      );
       await expect(res.json()).resolves.toEqual({
         errors: [
           {
@@ -146,7 +158,12 @@ describe("createResponse", () => {
       });
 
       expect(res.status).toBe(Status.MethodNotAllowed);
-      assertHeaderAppJson(res.headers);
+      expect(res.headers).toEqualIterable(
+        new Headers({
+          "content-type": contentType(".json"),
+          allow: "POST",
+        }),
+      );
       await expect(res.json()).resolves.toEqual({
         errors: [
           {
@@ -256,10 +273,10 @@ const describeResolveRequestTests = describe("resolveRequest");
 it(
   describeResolveRequestTests,
   `should throw error when header of "Content-Type" is not exists`,
-  () => {
+  async () => {
     const res = new Response();
 
-    expect(resolveResponse(res)).rejects.toError(
+    await expect(resolveResponse(res)).rejects.toError(
       Error,
       `"Content-Type" header is required`,
     );
@@ -269,9 +286,9 @@ it(
 it(
   describeResolveRequestTests,
   `should throw error when header of "Content-Type" is not valid`,
-  () => {
+  async () => {
     const res = new Response("");
-    expect(resolveResponse(res)).rejects.toError(
+    await expect(resolveResponse(res)).rejects.toError(
       Error,
       `Valid "Content-Type" is application/graphql+json or application/json`,
     );
@@ -281,13 +298,13 @@ it(
 it(
   describeResolveRequestTests,
   `should throw error when body is not JSON format`,
-  () => {
+  async () => {
     const res = new Response("", {
       headers: {
         "Content-Type": "application/json",
       },
     });
-    expect(resolveResponse(res)).rejects.toError(
+    await expect(resolveResponse(res)).rejects.toError(
       SyntaxError,
     );
   },
@@ -296,7 +313,7 @@ it(
 it(
   describeResolveRequestTests,
   `should throw error when ok is not true and body is not graphql response`,
-  () => {
+  async () => {
     const res = new Response(JSON.stringify({ errors: [] }), {
       headers: {
         "Content-Type": "application/json",
@@ -307,7 +324,7 @@ it(
       value: false,
     });
 
-    expect(resolveResponse(res)).rejects.toError(
+    await expect(resolveResponse(res)).rejects.toError(
       AggregateError,
       "GraphQL request error has occurred",
     );
@@ -317,7 +334,7 @@ it(
 it(
   describeResolveRequestTests,
   `should throw error when ok is not true and body is not graphql response`,
-  () => {
+  async () => {
     const res = new Response("{}", {
       headers: {
         "Content-Type": "application/json",
@@ -328,7 +345,7 @@ it(
       value: false,
     });
 
-    expect(resolveResponse(res)).rejects.toError(
+    await expect(resolveResponse(res)).rejects.toError(
       Error,
       "Unknown error has occurred",
     );
@@ -338,7 +355,7 @@ it(
 it(
   describeResolveRequestTests,
   `should return graphql response`,
-  () => {
+  async () => {
     const res = new Response(
       JSON.stringify({
         data: {},
@@ -350,7 +367,7 @@ it(
       },
     );
 
-    expect(resolveResponse(res)).resolves.toEqual({
+    await expect(resolveResponse(res)).resolves.toEqual({
       data: {},
     });
   },
