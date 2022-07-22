@@ -71,16 +71,16 @@ export type Options =
      * import { createHandler } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
      * import { buildSchema } from "https://esm.sh/graphql@$VERSION";
      *
-     * const handler = createHandler({
+     * const schema = buildSchema(`type Query {
+     *     hello: String
+     *   }`);
+     * const handler = createHandler(schema, {
      *   response: (res, ctx) => {
-     *     if (ctx.request.method === "GET") {
+     *     if (res.ok && ctx.request.method === "GET" && !ctx.playground) {
      *       res.headers.set("Cache-Control", "max-age=604800");
      *     }
      *     return res;
      *   },
-     *   schema: buildSchema(`type Query {
-     *     hello: String
-     *   }`),
      * });
      * ```
      */

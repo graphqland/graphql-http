@@ -189,7 +189,7 @@ const schema = buildSchema(`type Query {
   }`);
 const handler = createHandler(schema, {
   response: (res, ctx) => {
-    if (ctx.request.method === "GET") {
+    if (res.ok && ctx.request.method === "GET" && !ctx.playground) {
       res.headers.set("Cache-Control", "max-age=604800");
     }
     return res;
