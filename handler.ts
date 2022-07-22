@@ -23,13 +23,13 @@ export type Params =
   & {
     /** Overwrite actual response.
      * ```ts
-     * import { gqlHandler } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+     * import { createHandler } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
      * import { buildSchema } from "https://esm.sh/graphql@$VERSION";
      *
      * const schema = buildSchema(`type Query {
      *     hello: String
      *   }`);
-     * const handler = gqlHandler(schema, {
+     * const handler = createHandler(schema, {
      *   response: (res, ctx) => {
      *     if (ctx.request.method === "GET") {
      *       res.headers.set("Cache-Control", "max-age=604800");
@@ -102,14 +102,14 @@ export type Options =
  * @throws {@link AggregateError}
  * When graphql schema validation is fail.
  * ```ts
- * import { gqlHandler } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+ * import { createHandler } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
  * import { buildSchema } from "https://esm.sh/graphql@$VERSION";
  *
  * const schema = buildSchema(`type Query {
  *     hello: String!
  *   }`);
  *
- * const handler = gqlHandler(schema, {
+ * const handler = createHandler(schema, {
  *   rootValue: {
  *     hello: "world",
  *   },
@@ -119,7 +119,7 @@ export type Options =
  * const res = await handler(req);
  * ```
  */
-export default function gqlHandler(
+export default function createHandler(
   schema: GraphQLRequiredArgs["schema"],
   {
     response = (res) => res,

@@ -11,7 +11,7 @@ import {
   queryString,
   Status,
 } from "./dev_deps.ts";
-import gqlHandler from "./handler.ts";
+import createHandler from "./handler.ts";
 import { MIME_TYPE } from "./constants.ts";
 
 function assertHeaderAppGraphqlJson(headers: Headers): void {
@@ -78,16 +78,17 @@ const schema = new GraphQLSchema({
   }),
 });
 
-const handler = gqlHandler(schema);
+const handler = createHandler(schema);
 
 const BASE_URL = "https://test.test";
 
-const describeTests = describe("gqlHandler");
+const describeTests = describe("createHandler");
 
 it("should throw error when validation of schema is fail", () => {
-  expect(() => gqlHandler(buildSchema(`type Test { hello: String }`))).toThrow(
-    "Schema validation error",
-  );
+  expect(() => createHandler(buildSchema(`type Test { hello: String }`)))
+    .toThrow(
+      "Schema validation error",
+    );
 });
 
 it("should error when HTTP request method is unsupported", async () => {
