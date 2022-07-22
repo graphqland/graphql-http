@@ -1,3 +1,10 @@
+# [1.0.0-beta.13](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.12...1.0.0-beta.13) (2022-07-22)
+
+
+### Features
+
+* add `gql` function that compress graphql query ([59eacbe](https://github.com/TomokiMiyauci/graphql-http/commit/59eacbe49ea8014bf7a8926486f05af57899d952))
+
 # [1.0.0-beta.12](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.11...1.0.0-beta.12) (2022-07-21)
 
 
