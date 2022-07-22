@@ -1,3 +1,17 @@
+# [1.0.0-beta.14](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.13...1.0.0-beta.14) (2022-07-22)
+
+
+### Bug Fixes
+
+* add allow header when response status is 405 ([1355e48](https://github.com/TomokiMiyauci/graphql-http/commit/1355e48620d13a45cee2e4b600bc9eaf4b901f00))
+
+
+### Features
+
+* add allow header when the HTTP request is not supported ([2f057be](https://github.com/TomokiMiyauci/graphql-http/commit/2f057be8452aa63f392897321cceaf9ff66dc00d))
+* remove deprecated `graphqlHttp` function ([b9e6ae1](https://github.com/TomokiMiyauci/graphql-http/commit/b9e6ae17e28d508f9190a092cc6b03bfe1c963f7))
+* rename `gqlHandler` to `createHandler` ([e0167fc](https://github.com/TomokiMiyauci/graphql-http/commit/e0167fc33f502d2225b7345489206705208dc7f1))
+
 # [1.0.0-beta.13](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.12...1.0.0-beta.13) (2022-07-22)
 
 
