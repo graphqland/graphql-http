@@ -1,4 +1,4 @@
-import { graphqlHttp } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+import { createHandler } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
 import {
   Handler,
   serve,
@@ -6,10 +6,11 @@ import {
 } from "https://deno.land/std@$VERSION/http/mod.ts";
 import { buildSchema } from "https://esm.sh/graphql@$VERSION";
 
-const graphqlResponse = graphqlHttp({
-  schema: buildSchema(`type Query {
-    hello: String!
-  }`),
+const schema = buildSchema(`type Query {
+  hello: String!
+}`);
+
+const gqlHandler = createHandler(schema, {
   rootValue: {
     hello: () => "world",
   },
@@ -19,7 +20,7 @@ const graphqlResponse = graphqlHttp({
 const handler: Handler = (req) => {
   const { pathname } = new URL(req.url);
   if (pathname === "/graphql") {
-    return graphqlResponse(req);
+    return gqlHandler(req);
   }
   return new Response("Not Found", {
     status: Status.NotFound,
