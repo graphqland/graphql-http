@@ -520,7 +520,7 @@ import { assertEquals } from "https://deno.land/std@$VERSION/testing/asserts.ts"
 const query = gql`query Test {
   hello
 }`;
-assertEquals(query).toBe("query Test{hello}");
+assertEquals(query, "query Test{hello}");
 ```
 
 #### Parameters

@@ -44,7 +44,7 @@ export function mergeInit<
  * const query = gql`query Test {
  *   hello
  * }`;
- * assertEquals(query).toBe("query Test{hello}");
+ * assertEquals(query, "query Test{hello}");
  * ```
  */
 export function gql(query: TemplateStringsArray): string {
