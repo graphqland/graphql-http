@@ -23,19 +23,19 @@ export type Params =
   & {
     /** Overwrite actual response.
      * ```ts
-     * import { graphqlHttp } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+     * import { gqlHandler } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
      * import { buildSchema } from "https://esm.sh/graphql@$VERSION";
      *
-     * const responser = graphqlHttp({
+     * const schema = buildSchema(`type Query {
+     *     hello: String
+     *   }`);
+     * const handler = gqlHandler(schema, {
      *   response: (res, ctx) => {
      *     if (ctx.request.method === "GET") {
      *       res.headers.set("Cache-Control", "max-age=604800");
      *     }
      *     return res;
      *   },
-     *   schema: buildSchema(`type Query {
-     *     hello: String
-     *   }`),
      * });
      * ```
      */

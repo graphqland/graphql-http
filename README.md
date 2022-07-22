@@ -187,7 +187,7 @@ import { buildSchema } from "https://esm.sh/graphql@$VERSION";
 const schema = buildSchema(`type Query {
     hello: String
   }`);
-const responser = gqlHandler(schema, {
+const handler = gqlHandler(schema, {
   response: (res, ctx) => {
     if (ctx.request.method === "GET") {
       res.headers.set("Cache-Control", "max-age=604800");
