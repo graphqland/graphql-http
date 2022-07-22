@@ -507,6 +507,32 @@ type Result<
 - `SyntaxError`
 - `TypeError`
 
+### gql
+
+Compress GraphQL query.
+
+#### Example
+
+```ts
+import { gql } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+import { assertEquals } from "https://deno.land/std@$VERSION/mod.ts";
+
+const query = gql`query Test {
+  hello
+}`;
+assertEquals(query).toBe("query Test{hello}");
+```
+
+#### Parameters
+
+| Name  |      Required      | Description                              |
+| ----- | :----------------: | ---------------------------------------- |
+| query | :white_check_mark: | `TemplateStringsArray`<br>Graphql query. |
+
+#### ReturnType
+
+`string`
+
 ## Recipes
 
 - [std/http](./examples/std_http/README.md)
