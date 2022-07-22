@@ -45,8 +45,7 @@ crateUser    ( id      : $id   )
   });
   it("should same when it is compressed", () => {
     expect(
-      gql
-        `query Test($id:Id!){hello(id:$id)world}mutation TestMutate($id:Id!){crateUser(id:$id)}`,
+      gql`query Test($id:Id!){hello(id:$id)world}mutation TestMutate($id:Id!){crateUser(id:$id)}`,
     ).toBe(
       "query Test($id:Id!){hello(id:$id)world}mutation TestMutate($id:Id!){crateUser(id:$id)}",
     );
