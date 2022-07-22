@@ -156,12 +156,20 @@ export default function gqlHandler(
       }
 
       const result = createResult(err);
-      const res = createJSONResponse(result, {
-        status: err.status,
-        headers: {
-          "content-type": preferContentType,
-        },
-      });
+      const baseHeaders: HeadersInit = { "content-type": preferContentType };
+      const responseInit: ResponseInit = err.status === Status.MethodNotAllowed
+        ? {
+          status: err.status,
+          headers: {
+            ...baseHeaders,
+            allow: ["GET", "POST"].join(","),
+          },
+        }
+        : {
+          status: err.status,
+          headers: baseHeaders,
+        };
+      const res = createJSONResponse(result, responseInit);
 
       return [res, requestCtx];
     }

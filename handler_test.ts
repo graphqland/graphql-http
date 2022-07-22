@@ -14,6 +14,22 @@ import {
 import gqlHandler from "./handler.ts";
 import { MIME_TYPE } from "./constants.ts";
 
+function assertHeaderAppGraphqlJson(headers: Headers): void {
+  expect(headers).toEqualIterable(
+    new Headers({
+      "content-type": "application/graphql+json; charset=UTF-8",
+    }),
+  );
+}
+
+function assertHeaderAppJson(headers: Headers): void {
+  expect(headers).toEqualIterable(
+    new Headers({
+      "content-type": "application/json; charset=UTF-8",
+    }),
+  );
+}
+
 const QueryRootType = new GraphQLObjectType({
   name: "QueryRoot",
   fields: {
@@ -74,6 +90,33 @@ it("should throw error when validation of schema is fail", () => {
   );
 });
 
+it("should error when HTTP request method is unsupported", async () => {
+  const res = await handler(
+    new Request(queryString(BASE_URL, {}), {
+      headers: {
+        "accept": "plain/text",
+      },
+      method: "OPTIONS",
+    }),
+  );
+
+  expect(res.status).toBe(Status.MethodNotAllowed);
+  expect(res.headers).toEqualIterable(
+    new Headers({
+      allow: "GET,POST",
+      "content-type": contentType(".json"),
+    }),
+  );
+  await expect(res.json()).resolves.toEqual({
+    errors: [
+      {
+        message:
+          "Invalid HTTP method. GraphQL only supports GET and POST requests.",
+      },
+    ],
+  });
+});
+
 describe("HTTP method is GET", () => {
   it(
     describeTests,
@@ -88,9 +131,7 @@ describe("HTTP method is GET", () => {
       );
 
       expect(res.status).toBe(Status.NotAcceptable);
-      expect(res.headers.get("content-type")).toEqual(
-        contentType(".json"),
-      );
+      assertHeaderAppJson(res.headers);
       await expect(res.json()).resolves.toEqual({
         errors: [{
           message:
@@ -109,9 +150,7 @@ describe("HTTP method is GET", () => {
       );
 
       expect(res.status).toBe(Status.BadRequest);
-      expect(res.headers.get("content-type")).toEqual(
-        MIME_TYPE,
-      );
+      assertHeaderAppGraphqlJson(res.headers);
       await expect(res.json()).resolves.toEqual({
         errors: [{ message: `The parameter is required. "query"` }],
       });
@@ -129,8 +168,11 @@ describe("HTTP method is GET", () => {
       );
 
       expect(res.status).toBe(Status.MethodNotAllowed);
-      expect(res.headers.get("content-type")).toEqual(
-        MIME_TYPE,
+      expect(res.headers).toEqualIterable(
+        new Headers({
+          "content-type": MIME_TYPE,
+          allow: "POST",
+        }),
       );
       await expect(res.json()).resolves.toEqual({
         errors: [{
@@ -156,8 +198,11 @@ describe("HTTP method is GET", () => {
       );
 
       expect(res.status).toBe(Status.MethodNotAllowed);
-      expect(res.headers.get("content-type")).toEqual(
-        MIME_TYPE,
+      expect(res.headers).toEqualIterable(
+        new Headers({
+          "content-type": MIME_TYPE,
+          allow: "POST",
+        }),
       );
       await expect(res.json()).resolves.toEqual({
         errors: [{
@@ -177,9 +222,7 @@ describe("HTTP method is GET", () => {
     const res = await handler(req);
 
     expect(res.status).toBe(Status.OK);
-    expect(res.headers.get("content-type")).toEqual(
-      MIME_TYPE,
-    );
+    assertHeaderAppGraphqlJson(res.headers);
     await expect(res.json()).resolves.toEqual({
       data: { test: "Hello World" },
     });
@@ -194,9 +237,7 @@ describe("HTTP method is GET", () => {
     const res = await handler(req);
 
     expect(res.status).toBe(Status.OK);
-    expect(res.headers.get("content-type")).toEqual(
-      MIME_TYPE,
-    );
+    assertHeaderAppGraphqlJson(res.headers);
     await expect(res.json()).resolves.toEqual({
       data: { test: "Hello Dolly" },
     });
@@ -260,8 +301,10 @@ describe("HTTP method is POST", () => {
       );
 
       expect(res.status).toBe(Status.NotAcceptable);
-      expect(res.headers.get("content-type")).toEqual(
-        contentType(".json"),
+      expect(res.headers).toEqualIterable(
+        new Headers({
+          "content-type": contentType(".json"),
+        }),
       );
       await expect(res.json()).resolves.toEqual({
         errors: [{
@@ -283,7 +326,7 @@ describe("HTTP method is POST", () => {
     const res = await handler(req);
 
     expect(res.status).toBe(Status.OK);
-    expect(res.headers.get("content-type")).toBe(contentType(MIME_TYPE));
+    assertHeaderAppGraphqlJson(res.headers);
     expect(res.json()).resolves.toEqual({ data: { test: "Hello World" } });
   });
 
@@ -300,7 +343,7 @@ describe("HTTP method is POST", () => {
     const res = await handler(req);
 
     expect(res.status).toBe(Status.OK);
-    expect(res.headers.get("content-type")).toBe(contentType(MIME_TYPE));
+    assertHeaderAppGraphqlJson(res.headers);
     expect(res.json()).resolves.toEqual({
       data: { writeTest: { test: "Hello World" } },
     });
@@ -313,7 +356,7 @@ describe("HTTP method is POST", () => {
     const res = await handler(req);
 
     expect(res.status).toBe(Status.BadRequest);
-    expect(res.headers.get("content-type")).toBe(contentType(MIME_TYPE));
+    assertHeaderAppGraphqlJson(res.headers);
     expect(res.json()).resolves.toEqual({
       errors: [{ message: 'The header is required. "Content-Type"' }],
     });
@@ -329,7 +372,7 @@ describe("HTTP method is POST", () => {
     const res = await handler(req);
 
     expect(res.status).toBe(Status.BadRequest);
-    expect(res.headers.get("content-type")).toBe(contentType(MIME_TYPE));
+    assertHeaderAppGraphqlJson(res.headers);
     expect(res.json()).resolves.toEqual({
       errors: [{
         message: "The message body is invalid. Invalid JSON format.",
@@ -351,7 +394,7 @@ describe("HTTP method is POST", () => {
     const res = await handler(req);
 
     expect(res.status).toBe(Status.OK);
-    expect(res.headers.get("content-type")).toBe(contentType(MIME_TYPE));
+    assertHeaderAppGraphqlJson(res.headers);
     expect(res.json()).resolves.toEqual({ data: { test: "Hello World" } });
   });
 
@@ -370,7 +413,7 @@ describe("HTTP method is POST", () => {
     const res = await handler(req);
 
     expect(res.status).toBe(Status.OK);
-    expect(res.headers.get("content-type")).toBe(contentType(MIME_TYPE));
+    assertHeaderAppGraphqlJson(res.headers);
     expect(res.json()).resolves.toEqual({ data: { test: "Hello Dolly" } });
   });
 });

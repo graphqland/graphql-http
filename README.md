@@ -94,7 +94,7 @@ The following responses may be returned.
 | ------ | ------------------------------------------------------------------------------------------------- |
 | 200    | If GraphQL is actually executed, even if it contains `Field errors`.                              |
 | 400    | A required parameter does not exist. Illegal format of parameter.                                 |
-| 405    | When a mutation operation is requested on GET request.                                            |
+| 405    | When a `mutation` or `subscription` operation is requested on GET request.                        |
 | 406    | The client `Accept` HTTP header does not contain at least one of the supported media types.       |
 | 415    | The client `Content-type` HTTP header does not contain at least one of the supported media types. |
 | 500    | If the server encounters an unexpected error.                                                     |
