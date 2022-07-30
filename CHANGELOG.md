@@ -1,3 +1,10 @@
+# [1.0.0-beta.15](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.14...1.0.0-beta.15) (2022-07-30)
+
+
+### Features
+
+* **use:** split graphql playground handler from handler ([5cb8ee3](https://github.com/TomokiMiyauci/graphql-http/commit/5cb8ee3dc367ba6fed9d544eeee1c5a69e618d70))
+
 # [1.0.0-beta.14](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.13...1.0.0-beta.14) (2022-07-22)
 
 
