@@ -17,10 +17,6 @@ const JOKES = [
 const schemaStr = await Deno.readTextFile("schema.graphql");
 const schema = buildSchema(schemaStr);
 const handler = createHandler(schema, {
-  playground: true,
-  playgroundOptions: {
-    endpoint: "/graphql",
-  },
   rootValue: {
     joke: () => {
       const randomIndex = Math.floor(Math.random() * JOKES.length);

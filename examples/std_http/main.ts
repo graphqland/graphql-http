@@ -14,7 +14,6 @@ const gqlHandler = createHandler(schema, {
   rootValue: {
     hello: () => "world",
   },
-  playground: true,
 });
 
 const handler: Handler = (req) => {
