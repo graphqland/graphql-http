@@ -13,7 +13,6 @@ GraphQL client and handler compliant with GraphQL over HTTP specification
 - `application/graphql+json` support
 - Lean interface, tiny using [std](https://deno.land/std/http) and graphql
   public libraries
-- Built-in [graphql-playground](https://github.com/graphql/graphql-playground)
 - Universal
 
 ## Example
@@ -26,7 +25,10 @@ A simple example of creating a GraphQL server and GraphQL client.
 server:
 
 ```ts
-import { createHandler } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+import {
+  createHandler,
+  useGraphQLPlayground,
+} from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
 import { serve, Status } from "https://deno.land/std@$VERSION/http/mod.ts";
 import { buildSchema } from "https://esm.sh/graphql@$VERSION";
 
@@ -34,12 +36,12 @@ const schema = buildSchema(`type Query {
     hello: String!
   }`);
 
-const handler = createHandler(schema, {
+let handler = createHandler(schema, {
   rootValue: {
     hello: "world",
   },
-  playground: true,
 });
+handler = useGraphQLPlayground(handler);
 
 serve((req) => {
   const { pathname } = new URL(req.url);
@@ -173,30 +175,6 @@ Response status
 | GraphQL field error            | 200                      | 200              |
 | Unknown(Internal server) error | 5XX                      | 5XX              |
 
-## Overwrite response
-
-`grpahqlHttp` creates a response according to the GraphQL over HTTP
-specification. You can customize this response.
-
-Example of adding a header:
-
-```ts
-import { createHandler } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
-import { buildSchema } from "https://esm.sh/graphql@$VERSION";
-
-const schema = buildSchema(`type Query {
-    hello: String
-  }`);
-const handler = createHandler(schema, {
-  response: (res, ctx) => {
-    if (res.ok && ctx.request.method === "GET" && !ctx.playground) {
-      res.headers.set("Cache-Control", "max-age=604800");
-    }
-    return res;
-  },
-});
-```
-
 ## Where the subscription?
 
 Unfortunately, there is currently no specification for `subscription` and it is
@@ -229,7 +207,6 @@ const handler = createHandler(schema, {
   rootValue: {
     hello: "world",
   },
-  playground: true,
 });
 const req = new Request("<ENDPOINT>");
 const res = await handler(req);
@@ -237,20 +214,17 @@ const res = await handler(req);
 
 #### Parameters
 
-| N | Name              |     Required / Default     | Description                                                                                                                                                                                                                                                                            |
-| - | ----------------- | :------------------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 | schema            |     :white_check_mark:     | `GraphQLSchema`<br>The GraphQL type system to use when validating and executing a query.                                                                                                                                                                                               |
-| 2 | options           |             -              | handler options                                                                                                                                                                                                                                                                        |
-|   | source            |             -              | `Source` &#124; `string`<br>A GraphQL language formatted string representing the requested operation.                                                                                                                                                                                  |
-|   | rootValue         |             -              | `unknown`<br>The value provided as the first argument to resolver functions on the top level type (e.g. the query object type).                                                                                                                                                        |
-|   | contextValue      |             -              | `unknown`<br>The context value is provided as an argument to resolver functions after field arguments. It is used to pass shared information useful at any point during executing this query, for example the currently logged in user and connections to databases or other services. |
-|   | variableValues    |             -              | `<{ readonly [variable: string: unknown; }>` &#124; `null` <br>A mapping of variable name to runtime value to use for all variables defined in the requestString.                                                                                                                      |
-|   | operationName     |             -              | `string` &#124; `null`<br>The name of the operation to use if requestString contains multiple possible operations. Can be omitted if requestString contains only one operation.                                                                                                        |
-|   | fieldResolver     |             -              | `GraphQLFieldResolver<any, any>` &#124; `null`<br>A resolver function to use when one is not provided by the schema. If not provided, the default field resolver is used (which looks for a value or method on the source value with the field's name).                                |
-|   | typeResolver      |             -              | `GraphQLTypeResolver<any, any>` &#124; `null`<br>A type resolver function to use when none is provided by the schema. If not provided, the default type resolver is used (which looks for a `__typename` field or alternatively calls the `isTypeOf` method).                          |
-|   | response          |             -              | `(req: Request, ctx: RequestContext) =>` `Promise<Response>` &#124; `Response`<br> Overwrite actual response.                                                                                                                                                                          |
-|   | playground        |             -              | `boolean`<br>Whether enabled [graphql-playground](https://github.com/graphql/graphql-playground) or not.                                                                                                                                                                               |
-|   | playgroundOptions | `{ endpoint: "/graphql" }` | `RenderPageOptions`<br> [graphql-playground](https://github.com/graphql/graphql-playground) options.                                                                                                                                                                                   |
+| N | Name           | Required / Default | Description                                                                                                                                                                                                                                                                            |
+| - | -------------- | :----------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | schema         | :white_check_mark: | `GraphQLSchema`<br>The GraphQL type system to use when validating and executing a query.                                                                                                                                                                                               |
+| 2 | options        |         -          | handler options                                                                                                                                                                                                                                                                        |
+|   | source         |         -          | `Source` &#124; `string`<br>A GraphQL language formatted string representing the requested operation.                                                                                                                                                                                  |
+|   | rootValue      |         -          | `unknown`<br>The value provided as the first argument to resolver functions on the top level type (e.g. the query object type).                                                                                                                                                        |
+|   | contextValue   |         -          | `unknown`<br>The context value is provided as an argument to resolver functions after field arguments. It is used to pass shared information useful at any point during executing this query, for example the currently logged in user and connections to databases or other services. |
+|   | variableValues |         -          | `<{ readonly [variable: string: unknown; }>` &#124; `null` <br>A mapping of variable name to runtime value to use for all variables defined in the requestString.                                                                                                                      |
+|   | operationName  |         -          | `string` &#124; `null`<br>The name of the operation to use if requestString contains multiple possible operations. Can be omitted if requestString contains only one operation.                                                                                                        |
+|   | fieldResolver  |         -          | `GraphQLFieldResolver<any, any>` &#124; `null`<br>A resolver function to use when one is not provided by the schema. If not provided, the default field resolver is used (which looks for a value or method on the source value with the field's name).                                |
+|   | typeResolver   |         -          | `GraphQLTypeResolver<any, any>` &#124; `null`<br>A type resolver function to use when none is provided by the schema. If not provided, the default type resolver is used (which looks for a `__typename` field or alternatively calls the `isTypeOf` method).                          |
 
 #### ReturnType
 
@@ -325,6 +299,112 @@ type jsonObject = {
 - `SyntaxError`
 - `DOMException`
 - `AggregateError`
+
+### useGraphQLPlayground
+
+Use GraphQL Playground as handler.
+
+#### Example
+
+```ts
+import {
+  createHandler,
+  useGraphQLPlayground,
+} from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
+import { buildSchema } from "https://esm.sh/graphql@$VERSION";
+
+const schema = buildSchema(`type Query {
+    hello: String!
+  }`);
+
+let handler = createHandler(schema, {
+  rootValue: {
+    hello: "world",
+  },
+});
+handler = useGraphQLPlayground(handler);
+const req = new Request("<ENDPOINT>");
+const res = await handler(req);
+```
+
+#### Parameters
+
+| N | Name                 | Required / Default | Description                                                                                                                                                                                                                              |
+| - | -------------------- | :----------------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | handler              | :white_check_mark: | `(req: Request) => Promise<Response>` &#124; `Response`<br>The handler for individual HTTP requests.                                                                                                                                     |
+| 2 | options              |         -          | `RenderPageOptions`<br>The [graphql-playground](https://github.com/graphql/graphql-playground) options.                                                                                                                                  |
+|   | endpoint             |    `"/graphql"`    | `string`<br>The GraphQL endpoint url.                                                                                                                                                                                                    |
+|   | subscriptionEndpoint |         -          | `string`<br>The GraphQL subscriptions endpoint url.                                                                                                                                                                                      |
+|   | workspaceName        |         -          | `string`<br>in case you provide a GraphQL Config, you can name your workspace here.                                                                                                                                                      |
+|   | env                  |         -          | `any`                                                                                                                                                                                                                                    |
+|   | config               |         -          | `any`<br>The JSON of a GraphQL Config.                                                                                                                                                                                                   |
+|   | settings             |         -          | `ISettings`<br>Editor settings in json format.                                                                                                                                                                                           |
+|   | schema               |         -          | `IntrospectionResult`<br>The result of an introspection query (an object of this form: `{__schema: {...}}`) The playground automatically fetches the schema from the endpoint. This is only needed when you want to override the schema. |
+|   | tabs                 |         -          | `Tab[]`<br>An array of tabs to inject.                                                                                                                                                                                                   |
+|   | codeTheme            |         -          | `EditorColours`<br> Customize your color theme.                                                                                                                                                                                          |
+|   | version              |         -          | `string`                                                                                                                                                                                                                                 |
+|   | cdnUrl               |         -          | `string`                                                                                                                                                                                                                                 |
+|   | title                |         -          | `string`                                                                                                                                                                                                                                 |
+|   | faviconUrl           |         -          | `string` &#124; `null`                                                                                                                                                                                                                   |
+
+```ts
+interface ISettings {
+  "editor.cursorShape": "line" | "block" | "underline";
+  "editor.fontFamily": string;
+  "editor.fontSize": number;
+  "editor.reuseHeaders": boolean;
+  "editor.theme": "dark" | "light";
+  "general.betaUpdates": boolean;
+  "prettier.printWidth": number;
+  "prettier.tabWidth": number;
+  "prettier.useTabs": boolean;
+  "request.credentials": "omit" | "include" | "same-origin";
+  "request.globalHeaders": { [key: string]: string };
+  "schema.polling.enable": boolean;
+  "schema.polling.endpointFilter": string;
+  "schema.polling.interval": number;
+  "schema.disableComments": boolean;
+  "tracing.hideTracingResponse": boolean;
+  "tracing.tracingSupported": boolean;
+}
+interface Tab {
+  endpoint: string;
+  query: string;
+  name?: string;
+  variables?: string;
+  responses?: string[];
+  headers?: {
+    [key: string]: string;
+  };
+}
+interface EditorColours {
+  property: string;
+  comment: string;
+  punctuation: string;
+  keyword: string;
+  def: string;
+  qualifier: string;
+  attribute: string;
+  number: string;
+  string: string;
+  builtin: string;
+  string2: string;
+  variable: string;
+  meta: string;
+  atom: string;
+  ws: string;
+  selection: string;
+  cursorColor: string;
+  editorBackground: string;
+  resultBackground: string;
+  leftDrawerBackground: string;
+  rightDrawerBackground: string;
+}
+```
+
+#### ReturnType
+
+`(req: Request) => Promise<Response> | Response`
 
 ### createRequest
 
