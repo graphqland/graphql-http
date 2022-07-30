@@ -41,7 +41,7 @@ it(
     ).toEqualIterable(
       new Headers({
         accept: "application/graphql+json, application/json",
-        "content-type": "application/json;charset=UTF-8",
+        "content-type": "application/json; charset=UTF-8",
       }),
     );
   },

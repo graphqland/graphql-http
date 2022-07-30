@@ -1,4 +1,4 @@
-import { graphqlHttp } from "https://deno.land/x/graphql_http@1.0.0-beta.8/mod.ts";
+import { createHandler } from "https://deno.land/x/graphql_http@1.0.0-beta.8/mod.ts";
 import { buildSchema } from "https://esm.sh/graphql";
 
 const JOKES = [
@@ -15,8 +15,8 @@ const JOKES = [
 ];
 
 const schemaStr = await Deno.readTextFile("schema.graphql");
-const handler = graphqlHttp({
-  schema: buildSchema(schemaStr),
+const schema = buildSchema(schemaStr);
+const handler = createHandler(schema, {
   playground: true,
   playgroundOptions: {
     endpoint: "/graphql",

@@ -12,7 +12,7 @@ import {
   Status,
 } from "./dev_deps.ts";
 import createHandler from "./handler.ts";
-import { MIME_TYPE } from "./constants.ts";
+import { MIME_TYPE_APPLICATION_GRAPHQL_JSON } from "./constants.ts";
 
 function assertHeaderAppGraphqlJson(headers: Headers): void {
   expect(headers).toEqualIterable(
@@ -171,7 +171,7 @@ describe("HTTP method is GET", () => {
       expect(res.status).toBe(Status.MethodNotAllowed);
       expect(res.headers).toEqualIterable(
         new Headers({
-          "content-type": MIME_TYPE,
+          "content-type": MIME_TYPE_APPLICATION_GRAPHQL_JSON,
           allow: "POST",
         }),
       );
@@ -201,7 +201,7 @@ describe("HTTP method is GET", () => {
       expect(res.status).toBe(Status.MethodNotAllowed);
       expect(res.headers).toEqualIterable(
         new Headers({
-          "content-type": MIME_TYPE,
+          "content-type": MIME_TYPE_APPLICATION_GRAPHQL_JSON,
           allow: "POST",
         }),
       );
