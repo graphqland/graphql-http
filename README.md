@@ -27,7 +27,7 @@ server:
 ```ts
 import {
   createHandler,
-  useGraphQLPlayground,
+  usePlayground,
 } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
 import { serve, Status } from "https://deno.land/std@$VERSION/http/mod.ts";
 import { buildSchema } from "https://esm.sh/graphql@$VERSION";
@@ -41,7 +41,7 @@ let handler = createHandler(schema, {
     hello: "world",
   },
 });
-handler = useGraphQLPlayground(handler);
+handler = usePlayground(handler);
 
 serve((req) => {
   const { pathname } = new URL(req.url);
@@ -300,7 +300,7 @@ type jsonObject = {
 - `DOMException`
 - `AggregateError`
 
-### useGraphQLPlayground
+### usePlayground
 
 Use GraphQL Playground as handler.
 
@@ -309,7 +309,7 @@ Use GraphQL Playground as handler.
 ```ts
 import {
   createHandler,
-  useGraphQLPlayground,
+  usePlayground,
 } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
 import { buildSchema } from "https://esm.sh/graphql@$VERSION";
 
@@ -322,7 +322,7 @@ let handler = createHandler(schema, {
     hello: "world",
   },
 });
-handler = useGraphQLPlayground(handler);
+handler = usePlayground(handler);
 const req = new Request("<ENDPOINT>");
 const res = await handler(req);
 ```

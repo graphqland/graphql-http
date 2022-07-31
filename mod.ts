@@ -3,4 +3,4 @@ export { default as gqlFetch } from "./fetch.ts";
 export { createRequest, resolveRequest } from "./requests.ts";
 export { createResponse, resolveResponse } from "./responses.ts";
 export { gql } from "./utils.ts";
-export { default as useGraphQLPlayground } from "./use/graphql_playground.ts";
+export { default as usePlayground } from "./use/playground.ts";

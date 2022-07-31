@@ -1,11 +1,11 @@
-import useGraphQLPlayground from "./graphql_playground.ts";
+import usePlayground from "./playground.ts";
 import createHandler from "../handler.ts";
 import { describe, expect, it } from "../dev_deps.ts";
 import { buildSchema, contentType, Status } from "../deps.ts";
 
-describe("useGraphQLPlayground", () => {
+describe("usePlayground", () => {
   it("should render graphql playground when method is GET and accept includes text/html", async () => {
-    const handler = useGraphQLPlayground(() => new Response());
+    const handler = usePlayground(() => new Response());
     const req = new Request("http://localhost/test.com", {
       method: "GET",
       headers: {
@@ -25,7 +25,7 @@ describe("useGraphQLPlayground", () => {
 
   it("should return next response when request is not to playground", async () => {
     const nextRes = new Response();
-    const handler = useGraphQLPlayground(() => nextRes);
+    const handler = usePlayground(() => nextRes);
     const req = new Request("http://localhost/test.com", {
       method: "POST",
       headers: {
@@ -38,7 +38,7 @@ describe("useGraphQLPlayground", () => {
   it("should return graphql request result when the request is to graphql", async () => {
     let handler = createHandler(buildSchema(`type Query { hello: String }`));
 
-    handler = useGraphQLPlayground(handler);
+    handler = usePlayground(handler);
     const req = new Request("http://localhost/test.com?query=query{hello}", {
       method: "GET",
     });
@@ -56,7 +56,7 @@ describe("useGraphQLPlayground", () => {
   it("should return graphql playground result when the request is to graphql playground", async () => {
     let handler = createHandler(buildSchema(`type Query { hello: String }`));
 
-    handler = useGraphQLPlayground(handler);
+    handler = usePlayground(handler);
     const req = new Request("http://localhost/test.com", {
       method: "GET",
       headers: {

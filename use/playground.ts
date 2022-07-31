@@ -12,7 +12,7 @@ import { validatePlaygroundRequest } from "../validates.ts";
  * ```ts
  * import {
  *   createHandler,
- *   useGraphQLPlayground,
+ *   usePlayground,
  * } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
  * import { buildSchema } from "https://esm.sh/graphql@$VERSION";
  *
@@ -25,12 +25,12 @@ import { validatePlaygroundRequest } from "../validates.ts";
  *     hello: "world",
  *   },
  * });
- * handler = useGraphQLPlayground(handler);
+ * handler = usePlayground(handler);
  * const req = new Request("<ENDPOINT>");
  * const res = await handler(req);
  * ```
  */
-export default function useGraphQLPlayground(
+export default function usePlayground(
   handler: (req: Request) => Promise<Response> | Response,
   /**
    * @default `{ endpoint: "/graphql"}`
