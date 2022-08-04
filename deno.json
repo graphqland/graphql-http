@@ -1,15 +1,21 @@
 {
   "tasks": {
-    "test": "deno test --ignore=node_modules --import-map=_test_import_map.json --doc --coverage=coverage"
+    "test": "deno test --doc"
   },
   "fmt": {
     "files": {
-      "exclude": ["node_modules", "npm", "CHANGELOG.md"]
+      "exclude": ["npm", "CHANGELOG.md", "CODE_OF_CONDUCT.md"]
     }
   },
   "lint": {
     "files": {
-      "exclude": ["node_modules", "npm", "CHANGELOG.md"]
+      "exclude": ["npm", "CHANGELOG.md", "CODE_OF_CONDUCT.md"]
     }
-  }
+  },
+  "test": {
+    "files": {
+      "exclude": ["npm", "CHANGELOG.md", "CODE_OF_CONDUCT.md"]
+    }
+  },
+  "importMap": "_test_import_map.json"
 }

@@ -45,7 +45,7 @@ jobs:
           deno-version: ${{ matrix.deno }}
 
       - name: Test
-        run: deno task test
+        run: deno task test --coverage=coverage
 
       - name: Generate coverage
         if: ${{ matrix.deno == 'v1.x' }}
@@ -63,32 +63,15 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        node: [16]
 
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - uses: actions/setup-node@v2
+      - uses: cycjimmy/semantic-release-action@v3
         with:
-          node-version: ${{ matrix.node }}
-
-      - name: Cache node_modules
-        uses: actions/cache@v2
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-
-
-      - uses: pnpm/action-setup@v2.0.1
-        with:
-          version: 6.23.6
-          run_install: |
-            - recursive: true
-              args: [--frozen-lockfile, --prefer-offline, --ignore-scripts]
-
-      - name: Release
-        run: pnpm release
+          extra_plugins: |
+            @semantic-release/changelog
+            @semantic-release/git
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
