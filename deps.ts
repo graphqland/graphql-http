@@ -19,15 +19,16 @@ export {
 export {
   contentType,
   parseMediaType,
-} from "https://deno.land/std@0.148.0/media_types/mod.ts";
-export { accepts } from "https://deno.land/std@0.148.0/http/negotiation.ts";
+} from "https://deno.land/std@0.150.0/media_types/mod.ts";
+export { accepts } from "https://deno.land/std@0.150.0/http/negotiation.ts";
 export {
   isNil,
   isNull,
   isObject,
+  isPlainObject,
   isString,
   isUndefined,
-} from "https://deno.land/x/isx@v1.0.0-beta.17/mod.ts";
+} from "https://deno.land/x/isx@1.0.0-beta.19/mod.ts";
 export {
   JSON,
   type json,
@@ -42,7 +43,7 @@ export {
   createHttpError,
   HttpError,
   Status,
-} from "https://deno.land/std@0.148.0/http/mod.ts";
+} from "https://deno.land/std@0.150.0/http/mod.ts";
 
 export type PartialBy<T, K = keyof T> =
   Omit<T, K & keyof T> & Partial<Pick<T, K & keyof T>> extends infer U
@@ -83,4 +84,12 @@ export async function tryCatch<T>(
   } catch (er) {
     return [, er];
   }
+}
+
+// deno-lint-ignore no-explicit-any
+export function has<T extends Record<any, any>, K extends string>(
+  value: T,
+  key: K,
+): value is T & Record<K, unknown> {
+  return key in value;
 }
