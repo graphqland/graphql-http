@@ -1,3 +1,10 @@
+# [1.0.0-beta.17](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.16...1.0.0-beta.17) (2022-08-04)
+
+
+### Bug Fixes
+
+* **utils.ts:** remove unnessesary debug code ([f6f3643](https://github.com/TomokiMiyauci/graphql-http/commit/f6f36434a5f2a8c9c8ba5559707559ee57ab7b39))
+
 # [1.0.0-beta.16](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.15...1.0.0-beta.16) (2022-08-04)
 
 
