@@ -59,9 +59,3 @@ function cleanQuery(query: string): string {
     .replace(/(\B)\s(\B)|(\b)\s(\B)|(\B)\s(\b)/gm, "")
     .trim();
 }
-
-const query = gql`query Test {
-  hello
-}`;
-
-console.log(query);
