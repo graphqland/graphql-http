@@ -1,3 +1,15 @@
+# [1.0.0-beta.16](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.15...1.0.0-beta.16) (2022-08-04)
+
+
+### Bug Fixes
+
+* **use:** rename `useGraphQLPlayground` to `usePlayground` ([5f20761](https://github.com/TomokiMiyauci/graphql-http/commit/5f207611c326d804763fda5d95273a25a899efa9))
+
+
+### Features
+
+* **parses.ts:** add `parseGraphQLParameters` that parse value as GraphQL parameters ([be9128b](https://github.com/TomokiMiyauci/graphql-http/commit/be9128be4f68fd3a02298eb090eda94779a29445))
+
 # [1.0.0-beta.15](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.14...1.0.0-beta.15) (2022-07-30)
 
 
