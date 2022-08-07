@@ -1,3 +1,10 @@
+# [1.0.0-beta.18](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.17...1.0.0-beta.18) (2022-08-07)
+
+
+### Bug Fixes
+
+* **types.ts:** renname `variableValues` to `variables`, change record sub-field types ([07ff058](https://github.com/TomokiMiyauci/graphql-http/commit/07ff05838b4c0187d991b67ebe701a951512da3b))
+
 # [1.0.0-beta.17](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.16...1.0.0-beta.17) (2022-08-04)
 
 
