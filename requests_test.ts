@@ -248,7 +248,7 @@ it(
     expect(result[1]).toBeUndefined();
     expect(result[0]).toEqual({
       query: "query",
-      variableValues: null,
+      variables: null,
       operationName: null,
       extensions: null,
     });
@@ -269,7 +269,7 @@ it(
     expect(result[1]).toBeUndefined();
     expect(result[0]).toEqual({
       query: "query",
-      variableValues: null,
+      variables: null,
       operationName: null,
       extensions: null,
     });
@@ -314,7 +314,7 @@ it(
     const result = resolveGetRequest(new BaseRequest(url.toString()));
     expect(result[0]).toEqual({
       query: `query`,
-      variableValues: {
+      variables: {
         test: "test",
       },
       operationName: "query",
@@ -530,7 +530,7 @@ it(describePostTests, `application/json`, async (t) => {
       expect(result[0]).toEqual({
         query: "test",
         operationName: null,
-        variableValues: null,
+        variables: null,
         extensions: null,
       });
       expect(result[1]).toBeUndefined();
@@ -552,7 +552,7 @@ it(describePostTests, `application/json`, async (t) => {
       expect(result[0]).toEqual({
         query: "from body",
         operationName: null,
-        variableValues: null,
+        variables: null,
         extensions: null,
       });
       expect(result[1]).toBeUndefined();
@@ -573,7 +573,7 @@ it(describePostTests, `application/json`, async (t) => {
       expect(result[0]).toEqual({
         query: "from body",
         operationName: null,
-        variableValues: null,
+        variables: null,
         extensions: null,
       });
       expect(result[1]).toBeUndefined();
@@ -613,7 +613,7 @@ it(describePostTests, `application/json`, async (t) => {
       expect(result[0]).toEqual({
         query: "query",
         operationName: null,
-        variableValues: null,
+        variables: null,
         extensions: null,
       });
       expect(result[1]).toBeUndefined();
@@ -634,7 +634,7 @@ it(describePostTests, `application/json`, async (t) => {
       expect(result[0]).toEqual({
         query: "query",
         operationName: null,
-        variableValues: { abc: [] },
+        variables: { abc: [] },
         extensions: null,
       });
       expect(result[1]).toBeUndefined();
@@ -674,7 +674,7 @@ it(describePostTests, `application/json`, async (t) => {
       expect(result[0]).toEqual({
         query: "query",
         operationName: "subscription",
-        variableValues: null,
+        variables: null,
         extensions: null,
       });
       expect(result[1]).toBeUndefined();
@@ -719,7 +719,7 @@ it(
         expect(result[0]).toEqual({
           query: "test",
           operationName: null,
-          variableValues: null,
+          variables: null,
           extensions: null,
         });
         expect(result[1]).toBeUndefined();
@@ -740,7 +740,7 @@ it(
         expect(result[0]).toEqual({
           query: "test",
           operationName: null,
-          variableValues: null,
+          variables: null,
           extensions: null,
         });
         expect(result[1]).toBeUndefined();
@@ -762,7 +762,7 @@ it(
         expect(result[0]).toEqual({
           query: "test",
           operationName: null,
-          variableValues: null,
+          variables: null,
           extensions: null,
         });
         expect(result[1]).toBeUndefined();
@@ -784,7 +784,7 @@ it(
         expect(result[0]).toEqual({
           query: "from body",
           operationName: null,
-          variableValues: null,
+          variables: null,
           extensions: null,
         });
         expect(result[1]).toBeUndefined();

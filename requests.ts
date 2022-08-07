@@ -173,7 +173,7 @@ export type RequestResult = [data: GraphQLParameters] | [
  * const req = new Request("<graphql-endpoint>"); // any Request
  * const [data, err] = await resolveRequest(req);
  * if (data) {
- *   const { query, variableValues, operationName, extensions } = data;
+ *   const { query, variables, operationName, extensions } = data;
  * }
  * ```
  */
@@ -217,10 +217,10 @@ export function resolveGetRequest(req: Request): RequestResult {
       createHttpError(Status.BadRequest, `The parameter is required. "query"`),
     ];
   }
-  let variableValues: GraphQLParameters["variableValues"] | null = null;
-  const variables = url.searchParams.get("variables");
-  if (isString(variables)) {
-    const [data, err] = JSON.parse(variables);
+  let variables: GraphQLParameters["variables"] | null = null;
+  const variablesStr = url.searchParams.get("variables");
+  if (isString(variablesStr)) {
+    const [data, err] = JSON.parse(variablesStr);
     if (err) {
       return [
         ,
@@ -231,7 +231,7 @@ export function resolveGetRequest(req: Request): RequestResult {
       ];
     }
     if (isPlainObject(data)) {
-      variableValues = data;
+      variables = data;
     }
   }
 
@@ -239,7 +239,7 @@ export function resolveGetRequest(req: Request): RequestResult {
 
   return [{
     query: source,
-    variableValues,
+    variables,
     operationName,
     extensions: null,
   }];
@@ -355,7 +355,7 @@ export async function resolvePostRequest(
       return [{
         query,
         operationName,
-        variableValues: variables,
+        variables,
         extensions: null,
       }];
     }
@@ -377,7 +377,7 @@ export async function resolvePostRequest(
       return [{
         query,
         operationName: null,
-        variableValues: null,
+        variables: null,
         extensions: null,
       }];
     }

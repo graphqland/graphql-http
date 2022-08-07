@@ -71,7 +71,7 @@ export default function createHandler(
 
       return res;
     }
-    const { query: source, variableValues, operationName } = data;
+    const { query: source, variables: variableValues, operationName } = data;
 
     const res = createResponse({
       schema,

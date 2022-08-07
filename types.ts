@@ -30,13 +30,13 @@ export type GraphQLParameters = {
   query: string;
 
   /** Values for any Variables defined by the Operation. */
-  variableValues: Record<string, json> | null;
+  variables: Record<string, unknown> | null;
 
   /** The name of the Operation in the Document to execute. */
   operationName: string | null;
 
   /** Reserved for implementors to extend the protocol however they see fit. */
-  extensions: Record<string, json> | null;
+  extensions: Record<string, unknown> | null;
 };
 
 export type GraphQLRequiredArgs = {

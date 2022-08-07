@@ -462,7 +462,7 @@ import {
 const req = new Request("<graphql-endpoint>"); // any Request
 const [data, err] = await resolveRequest(req);
 if (data) {
-  const { query, variableValues, operationName, extensions } = data;
+  const { query, variables, operationName, extensions } = data;
 }
 ```
 
@@ -478,14 +478,14 @@ if (data) {
 
 RequestResult:
 
-| N | Name           | Description                                                                                                                  |
-| - | -------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| 1 | data           | Bellow records &#124; `undefined`<br>GraphQL parameters.                                                                     |
-|   | query          | `string`<br>A Document containing GraphQL Operations and Fragments to execute.                                               |
-|   | variableValues | `Record<string, json>` &#124; `null`<br>Values for any Variables defined by the Operation.                                   |
-|   | operationName  | `string` &#124; `null`<br>The name of the Operation in the Document to execute.                                              |
-|   | extensions     | `Record<string, json>` &#124; `null`<br>Reserved for implementors to extend the protocol however they see fit.               |
-| 2 | error          | `HttpError` &#124; `undefined`<br>The base class that all derivative HTTP extend, providing a status and an expose property. |
+| N | Name          | Description                                                                                                                  |
+| - | ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1 | data          | Bellow records &#124; `undefined`<br>GraphQL parameters.                                                                     |
+|   | query         | `string`<br>A Document containing GraphQL Operations and Fragments to execute.                                               |
+|   | variables     | `Record<string, json>` &#124; `null`<br>Values for any Variables defined by the Operation.                                   |
+|   | operationName | `string` &#124; `null`<br>The name of the Operation in the Document to execute.                                              |
+|   | extensions    | `Record<string, json>` &#124; `null`<br>Reserved for implementors to extend the protocol however they see fit.               |
+| 2 | error         | `HttpError` &#124; `undefined`<br>The base class that all derivative HTTP extend, providing a status and an expose property. |
 
 #### Remark
 

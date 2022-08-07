@@ -66,13 +66,13 @@ export function parseGraphQLParameters(
     ];
   }
 
-  const { query, ...rest } = value;
+  const { query, variables = null, operationName = null, extensions = null } =
+    value as GraphQLParameters;
 
   return [{
-    operationName: null,
-    variableValues: null,
-    extensions: null,
+    operationName,
+    variables,
+    extensions,
     query,
-    ...rest,
   }];
 }
