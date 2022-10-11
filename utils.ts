@@ -34,28 +34,3 @@ export function mergeInit<
     headers,
   }];
 }
-
-/** Compress GraphQL query.
- * @param query Graphql query.
- * ```ts
- * import { gql } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
- * import { assertEquals } from "https://deno.land/std@$VERSION/testing/asserts.ts";
- *
- * const query = gql`query Test {
- *   hello
- * }`;
- * assertEquals(query, "query Test{hello}");
- * ```
- */
-export function gql(query: TemplateStringsArray): string {
-  return query.reduce((acc, cur) => `${acc}${cleanQuery(cur)}`, "");
-}
-
-function cleanQuery(query: string): string {
-  return query
-    // remove multiple whitespace
-    .replace(/\s+/g, " ")
-    // remove all whitespace between everything except for word and word boundaries
-    .replace(/(\B)\s(\B)|(\b)\s(\B)|(\B)\s(\b)/gm, "")
-    .trim();
-}

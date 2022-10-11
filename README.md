@@ -55,20 +55,6 @@ serve((req) => {
 // Listening on <BASE_URL>
 ```
 
-client:
-
-```ts
-import { gqlFetch } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
-
-const { data, errors, extensions } = await gqlFetch({
-  url: `<BASE_URL>/graphql`,
-  query: `query { hello }`,
-});
-```
-
-or you can access `<BASE_URL>/graphql` in your browser and use
-[graphql-playground](https://github.com/graphql/graphql-playground).
-
 ## Spec
 
 This project is implemented in accordance with
@@ -233,72 +219,6 @@ const res = await handler(req);
 #### Throws
 
 - `AggregateError` - When graphql schema validation is fail.
-
-### gqlFetch
-
-GraphQL client with HTTP.
-
-#### Example
-
-```ts
-import { gqlFetch } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
-
-const { data, errors, extensions } = await gqlFetch({
-  url: `<graphql-endpoint>`,
-  query: `query Greet(name: $name) {
-    hello(name: $name)
-  }`,
-}, {
-  variables: {
-    name: "Bob",
-  },
-  operationName: "Greet",
-  method: "GET",
-});
-```
-
-#### Generics
-
-- `T extends jsonObject` - `data` field type
-
-#### Parameters
-
-| N | Name          | Required / Default | Description                                                                                                                                                 |
-| - | ------------- | :----------------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 | params        | :white_check_mark: | Parameters                                                                                                                                                  |
-|   | url           | :white_check_mark: | `string` &#124; `URL`<br>GraphQL URL endpoint.                                                                                                              |
-|   | query         | :white_check_mark: | `string`<br>GraphQL query                                                                                                                                   |
-| 2 | options       |         -          | Options                                                                                                                                                     |
-|   | variables     |         -          | `jsonObject`<br> GraphQL variables.                                                                                                                         |
-|   | operationName |         -          | `string`<br>GraphQL operation name.                                                                                                                         |
-|   | method        |      `"POST"`      | `"GET"` &#124; `"POST"` &#124; `({} & string)`<br>HTTP Request method. According to the GraphQL over HTTP Spec, all GraphQL servers accept `POST` requests. |
-| 3 | requestInit   |         -          | `RequestInit`<br>Request init for customize HTTP request.                                                                                                   |
-
-```ts
-type json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [k: string]: json }
-  | json[];
-
-type jsonObject = {
-  [k: string]: json;
-};
-```
-
-#### ReturnTypes
-
-`Promise<Result<T>>`
-
-#### Throws
-
-- `Error`
-- `TypeError`
-- `SyntaxError`
-- `DOMException`
-- `AggregateError`
 
 ### usePlayground
 
@@ -586,32 +506,6 @@ type Result<
 - `AggregateError`
 - `SyntaxError`
 - `TypeError`
-
-### gql
-
-Compress GraphQL query.
-
-#### Example
-
-```ts
-import { gql } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
-import { assertEquals } from "https://deno.land/std@$VERSION/testing/asserts.ts";
-
-const query = gql`query Test {
-  hello
-}`;
-assertEquals(query, "query Test{hello}");
-```
-
-#### Parameters
-
-| Name  |      Required      | Description                              |
-| ----- | :----------------: | ---------------------------------------- |
-| query | :white_check_mark: | `TemplateStringsArray`<br>Graphql query. |
-
-#### ReturnType
-
-`string`
 
 ## Recipes
 

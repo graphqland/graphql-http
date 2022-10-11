@@ -15,7 +15,7 @@ export {
   specifiedRules,
   validate,
   validateSchema,
-} from "https://esm.sh/graphql@16.5.0";
+} from "https://esm.sh/v87/graphql@16.5.0";
 export {
   contentType,
   parseMediaType,
