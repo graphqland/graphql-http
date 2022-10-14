@@ -1,3 +1,11 @@
+# [1.0.0-beta.19](https://github.com/graphqland/graphql-http/compare/1.0.0-beta.18...1.0.0-beta.19) (2022-10-14)
+
+
+### Features
+
+* **fetch:** remove graphql client module ([3be2efb](https://github.com/graphqland/graphql-http/commit/3be2efb7f03120e14b3330830192c66b9378be6f))
+* remove request and response logic ([2ecea94](https://github.com/graphqland/graphql-http/commit/2ecea9479d5a6370eb8b487fa3af03958e10380a))
+
 # [1.0.0-beta.18](https://github.com/TomokiMiyauci/graphql-http/compare/1.0.0-beta.17...1.0.0-beta.18) (2022-08-07)
 
 
