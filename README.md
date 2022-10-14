@@ -4,15 +4,13 @@
 [![deno doc](https://img.shields.io/badge/deno-doc-black)](https://doc.deno.land/https/deno.land/x/graphql_http/mod.ts)
 [![codecov](https://codecov.io/gh/TomokiMiyauci/graphql-http/branch/main/graph/badge.svg?token=0Dq5iqtnjw)](https://codecov.io/gh/TomokiMiyauci/graphql-http)
 
-GraphQL client and handler compliant with GraphQL over HTTP specification
+GraphQL request handler compliant with GraphQL-over-HTTP specification
 
 ## Features
 
-- [GraphQL over HTTP Spec](https://graphql.github.io/graphql-over-http/)
-  compliant
-- `application/graphql+json` support
-- Lean interface, tiny using [std](https://deno.land/std/http) and graphql
-  public libraries
+- [GraphQL-over-HTTP](https://graphql.github.io/graphql-over-http/)
+  specification compliant
+- `application/graphql-response+json` support
 - Universal
 
 ## Example
@@ -27,38 +25,39 @@ server:
 ```ts
 import {
   createHandler,
-  usePlayground,
 } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
-import { serve, Status } from "https://deno.land/std@$VERSION/http/mod.ts";
+import { serve } from "https://deno.land/std@$VERSION/http/mod.ts";
 import { buildSchema } from "https://esm.sh/graphql@$VERSION";
 
 const schema = buildSchema(`type Query {
-    hello: String!
+    greet: String!
   }`);
-
-let handler = createHandler(schema, {
+const handler = createHandler(schema, {
   rootValue: {
-    hello: "world",
+    greet: "hello world!",
   },
 });
-handler = usePlayground(handler);
 
-serve((req) => {
-  const { pathname } = new URL(req.url);
-  if (pathname === "/graphql") {
-    return handler(req);
-  }
-  return new Response("Not Found", {
-    status: Status.NotFound,
-  });
-});
-// Listening on <BASE_URL>
+serve(handler);
+```
+
+It is recommended to use
+[graphql-request](https://github.com/graphqland/graphql-request/) as the GraphQL
+client.
+
+client:
+
+```ts
+import { gql, gqlFetch } from "https://deno.land/x/gql_request@$VERSION/mod.ts";
+
+const document = gql`query { greet }`;
+const { data, errors, extensions } = await gqlFetch("<ENDPOINT>", document);
 ```
 
 ## Spec
 
 This project is implemented in accordance with
-[GraphQL over HTTP Spec](https://graphql.github.io/graphql-over-http/).
+[GraphQL-over-HTTP](https://graphql.github.io/graphql-over-http/) specification.
 
 We are actively implementing
 [IETF RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119) `SHOULD` and
@@ -121,8 +120,9 @@ for the reason for this.
 
 ##### application/graphql+json
 
-If Content-Type is `application/graphql+json`, it is possible to respond with a
-status code other than `200` depending on the result of the GraphQL Request.
+If Content-Type is `application/graphql-response+json`, it is possible to
+respond with a status code other than `200` depending on the result of the
+GraphQL Request.
 
 If the GraphQL request is invalid (e.g. it is malformed, or does not pass
 validation) then the response with 400 status code.
@@ -139,18 +139,18 @@ Even if a Field error occurs, it will always be a `200` status code.
 If an error other than the above occurs on the server side, a `500` status code
 will be responded.
 
-#### Upgrade to application/graphql+json
+#### Upgrade to application/graphql-response+json
 
-As you may have noticed, `application/graphql+json` represents a more accurate
-semantics response.
+As you may have noticed, `application/graphql-response+json` represents a more
+accurate semantics response.
 
-If you want `application/graphql+json` content, you must put
-`application/graphql+json` as a higher priority than `application/json` in the
-`Accept` header.
+If you want `application/graphql-response+json` content, you must put
+`application/graphql-response+json` as a higher priority than `application/json`
+in the `Accept` header.
 
-Example: `Accept: application/graphql+json,application/json`.
+Example: `Accept: application/graphql-response+json,application/json`.
 
-## application/graphql+json vs application/json
+## application/graphql-response+json vs application/json
 
 Response status
 
@@ -173,340 +173,6 @@ or [Websocket](https://developer.mozilla.org/en-US/docs/Web/API/Websockets_API).
 - [graphql-ws](https://github.com/enisdenjo/graphql-ws)
 - [subscriptions-transport-ws](https://github.com/apollographql/subscriptions-transport-ws)
 
-## API
-
-### createHandler
-
-Create HTTP handler what handle GraphQL over HTTP request.
-
-#### Example
-
-```ts
-import { createHandler } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
-import { buildSchema } from "https://esm.sh/graphql@$VERSION";
-
-const schema = buildSchema(`type Query {
-    hello: String!
-  }`);
-
-const handler = createHandler(schema, {
-  rootValue: {
-    hello: "world",
-  },
-});
-const req = new Request("<ENDPOINT>");
-const res = await handler(req);
-```
-
-#### Parameters
-
-| N | Name           | Required / Default | Description                                                                                                                                                                                                                                                                            |
-| - | -------------- | :----------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 | schema         | :white_check_mark: | `GraphQLSchema`<br>The GraphQL type system to use when validating and executing a query.                                                                                                                                                                                               |
-| 2 | options        |         -          | handler options                                                                                                                                                                                                                                                                        |
-|   | source         |         -          | `Source` &#124; `string`<br>A GraphQL language formatted string representing the requested operation.                                                                                                                                                                                  |
-|   | rootValue      |         -          | `unknown`<br>The value provided as the first argument to resolver functions on the top level type (e.g. the query object type).                                                                                                                                                        |
-|   | contextValue   |         -          | `unknown`<br>The context value is provided as an argument to resolver functions after field arguments. It is used to pass shared information useful at any point during executing this query, for example the currently logged in user and connections to databases or other services. |
-|   | variableValues |         -          | `<{ readonly [variable: string: unknown; }>` &#124; `null` <br>A mapping of variable name to runtime value to use for all variables defined in the requestString.                                                                                                                      |
-|   | operationName  |         -          | `string` &#124; `null`<br>The name of the operation to use if requestString contains multiple possible operations. Can be omitted if requestString contains only one operation.                                                                                                        |
-|   | fieldResolver  |         -          | `GraphQLFieldResolver<any, any>` &#124; `null`<br>A resolver function to use when one is not provided by the schema. If not provided, the default field resolver is used (which looks for a value or method on the source value with the field's name).                                |
-|   | typeResolver   |         -          | `GraphQLTypeResolver<any, any>` &#124; `null`<br>A type resolver function to use when none is provided by the schema. If not provided, the default type resolver is used (which looks for a `__typename` field or alternatively calls the `isTypeOf` method).                          |
-
-#### ReturnType
-
-`(req: Request) => Promise<Response>`
-
-#### Throws
-
-- `AggregateError` - When graphql schema validation is fail.
-
-### usePlayground
-
-Use GraphQL Playground as handler.
-
-#### Example
-
-```ts
-import {
-  createHandler,
-  usePlayground,
-} from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
-import { buildSchema } from "https://esm.sh/graphql@$VERSION";
-
-const schema = buildSchema(`type Query {
-    hello: String!
-  }`);
-
-let handler = createHandler(schema, {
-  rootValue: {
-    hello: "world",
-  },
-});
-handler = usePlayground(handler);
-const req = new Request("<ENDPOINT>");
-const res = await handler(req);
-```
-
-#### Parameters
-
-| N | Name                 | Required / Default | Description                                                                                                                                                                                                                              |
-| - | -------------------- | :----------------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 | handler              | :white_check_mark: | `(req: Request) => Promise<Response>` &#124; `Response`<br>The handler for individual HTTP requests.                                                                                                                                     |
-| 2 | options              |         -          | `RenderPageOptions`<br>The [graphql-playground](https://github.com/graphql/graphql-playground) options.                                                                                                                                  |
-|   | endpoint             |    `"/graphql"`    | `string`<br>The GraphQL endpoint url.                                                                                                                                                                                                    |
-|   | subscriptionEndpoint |         -          | `string`<br>The GraphQL subscriptions endpoint url.                                                                                                                                                                                      |
-|   | workspaceName        |         -          | `string`<br>in case you provide a GraphQL Config, you can name your workspace here.                                                                                                                                                      |
-|   | env                  |         -          | `any`                                                                                                                                                                                                                                    |
-|   | config               |         -          | `any`<br>The JSON of a GraphQL Config.                                                                                                                                                                                                   |
-|   | settings             |         -          | `ISettings`<br>Editor settings in json format.                                                                                                                                                                                           |
-|   | schema               |         -          | `IntrospectionResult`<br>The result of an introspection query (an object of this form: `{__schema: {...}}`) The playground automatically fetches the schema from the endpoint. This is only needed when you want to override the schema. |
-|   | tabs                 |         -          | `Tab[]`<br>An array of tabs to inject.                                                                                                                                                                                                   |
-|   | codeTheme            |         -          | `EditorColours`<br> Customize your color theme.                                                                                                                                                                                          |
-|   | version              |         -          | `string`                                                                                                                                                                                                                                 |
-|   | cdnUrl               |         -          | `string`                                                                                                                                                                                                                                 |
-|   | title                |         -          | `string`                                                                                                                                                                                                                                 |
-|   | faviconUrl           |         -          | `string` &#124; `null`                                                                                                                                                                                                                   |
-
-```ts
-interface ISettings {
-  "editor.cursorShape": "line" | "block" | "underline";
-  "editor.fontFamily": string;
-  "editor.fontSize": number;
-  "editor.reuseHeaders": boolean;
-  "editor.theme": "dark" | "light";
-  "general.betaUpdates": boolean;
-  "prettier.printWidth": number;
-  "prettier.tabWidth": number;
-  "prettier.useTabs": boolean;
-  "request.credentials": "omit" | "include" | "same-origin";
-  "request.globalHeaders": { [key: string]: string };
-  "schema.polling.enable": boolean;
-  "schema.polling.endpointFilter": string;
-  "schema.polling.interval": number;
-  "schema.disableComments": boolean;
-  "tracing.hideTracingResponse": boolean;
-  "tracing.tracingSupported": boolean;
-}
-interface Tab {
-  endpoint: string;
-  query: string;
-  name?: string;
-  variables?: string;
-  responses?: string[];
-  headers?: {
-    [key: string]: string;
-  };
-}
-interface EditorColours {
-  property: string;
-  comment: string;
-  punctuation: string;
-  keyword: string;
-  def: string;
-  qualifier: string;
-  attribute: string;
-  number: string;
-  string: string;
-  builtin: string;
-  string2: string;
-  variable: string;
-  meta: string;
-  atom: string;
-  ws: string;
-  selection: string;
-  cursorColor: string;
-  editorBackground: string;
-  resultBackground: string;
-  leftDrawerBackground: string;
-  rightDrawerBackground: string;
-}
-```
-
-#### ReturnType
-
-`(req: Request) => Promise<Response> | Response`
-
-### createRequest
-
-Create GraphQL `Request` object.
-
-#### Example
-
-```ts
-import { createRequest } from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
-
-const [request, err] = createRequest({
-  url: "<graphql-endpoint>",
-  query: `query Greet(name: $name) {
-    hello(name: $name)
-  }`,
-  method: "GET",
-});
-
-if (!err) {
-  const res = await fetch(request);
-}
-```
-
-#### Generics
-
-- `T extends jsonObject`
-
-#### Parameters
-
-| N | Name          | Required / Default | Description                                                                                                                                                 |
-| - | ------------- | :----------------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 | params        | :white_check_mark: | Parameters                                                                                                                                                  |
-|   | url           | :white_check_mark: | `string` &#124; `URL`<br>GraphQL URL endpoint.                                                                                                              |
-|   | query         | :white_check_mark: | `string`<br>GraphQL query                                                                                                                                   |
-|   | method        | :white_check_mark: | `"GET"` &#124; `"POST"` &#124; `({} & string)`<br>HTTP Request method. According to the GraphQL over HTTP Spec, all GraphQL servers accept `POST` requests. |
-| 2 | options       |         -          | Options                                                                                                                                                     |
-|   | variables     |         -          | `jsonObject`<br> GraphQL variables.                                                                                                                         |
-|   | operationName |         -          | `string`<br>GraphQL operation name.                                                                                                                         |
-
-#### ReturnType
-
-`[data: Request, error: undefined] | [data: undefined, error: TypeError]`
-
-### resolveRequest
-
-Resolve GraphQL over HTTP request, take out GraphQL parameters safety.
-
-#### Example
-
-```ts
-import {
-  resolveRequest,
-} from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
-
-const req = new Request("<graphql-endpoint>"); // any Request
-const [data, err] = await resolveRequest(req);
-if (data) {
-  const { query, variables, operationName, extensions } = data;
-}
-```
-
-#### Parameters
-
-| Name |      Required      | Description                    |
-| ---- | :----------------: | ------------------------------ |
-| req  | :white_check_mark: | `Request`<br> `Request` object |
-
-#### ReturnType
-
-`Promise<RequestResult>` | `RequestResult`
-
-RequestResult:
-
-| N | Name          | Description                                                                                                                  |
-| - | ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| 1 | data          | Bellow records &#124; `undefined`<br>GraphQL parameters.                                                                     |
-|   | query         | `string`<br>A Document containing GraphQL Operations and Fragments to execute.                                               |
-|   | variables     | `Record<string, json>` &#124; `null`<br>Values for any Variables defined by the Operation.                                   |
-|   | operationName | `string` &#124; `null`<br>The name of the Operation in the Document to execute.                                              |
-|   | extensions    | `Record<string, json>` &#124; `null`<br>Reserved for implementors to extend the protocol however they see fit.               |
-| 2 | error         | `HttpError` &#124; `undefined`<br>The base class that all derivative HTTP extend, providing a status and an expose property. |
-
-#### Remark
-
-No error is thrown and `reject` is never called.
-
-### createResponse
-
-Create a GraphQL over HTTP compliant `Response` object.
-
-#### Example
-
-```ts
-import {
-  createResponse,
-} from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
-import { buildSchema } from "https://esm.sh/graphql@$VERSION";
-
-const schema = buildSchema(`query {
-  hello: String!
-}`);
-
-const res = createResponse({
-  schema,
-  source: `query { hello }`,
-  method: "POST",
-}, {
-  rootValue: {
-    hello: "world",
-  },
-});
-```
-
-#### Parameters
-
-| N | Name           |      Required / Default      | Description                                              |
-| - | -------------- | :--------------------------: | -------------------------------------------------------- |
-| 1 | params         |      :white_check_mark:      | Parameters.                                              |
-|   | schema         |      :white_check_mark:      | `GraphQLSchema`                                          |
-|   | method         |      :white_check_mark:      | `GET` &#124; `POST`                                      |
-| 2 | options        |              -               | options.                                                 |
-|   | operationName  |              -               | `string` &#124; `null`                                   |
-|   | variableValues |              -               | `{ readonly [variable: string]: unknown }` &#124; `null` |
-|   | contextValue   |              -               | `unknown`                                                |
-|   | rootValue      |              -               | `unknown`                                                |
-|   | fieldResolver  |              -               | `GraphQLFieldResolver<any, any>` &#124; `null`           |
-|   | typeResolver   |              -               | `GraphQLTypeResolver<any, any>` &#124; `null`            |
-|   | mimeType       | `"application/graphql+json"` | `"application/graphql+json"`&#124; `application/json`    |
-
-#### ReturnType
-
-`Response`
-
-### resolveResponse
-
-Resolve GraphQL over HTTP response safety.
-
-#### Example
-
-```ts
-import {
-  resolveResponse,
-} from "https://deno.land/x/graphql_http@$VERSION/mod.ts";
-
-const res = new Response(); // any Response
-const { data, errors, extensions } = await resolveResponse(res);
-```
-
-#### Parameters
-
-| Name |      Required      | Description                      |
-| ---- | :----------------: | -------------------------------- |
-| res  | :white_check_mark: | `Response`<br> `Response` object |
-
-#### ReturnType
-
-`Promise<Result<T>>`
-
-```ts
-import { GraphQLError } from "https://esm.sh/graphql@$VERSION";
-import { json } from "https://deno.land/x/pure_json@$VERSION/mod.ts";
-type PickBy<T, K> = {
-  [k in keyof T as (K extends T[k] ? k : never)]: T[k];
-};
-
-type SerializedGraphQLError = PickBy<GraphQLError, json | undefined>;
-type Result<
-  T extends Record<string, unknown> = Record<string, unknown>,
-> = {
-  data?: T;
-  errors?: SerializedGraphQLError[];
-  extensions?: unknown;
-};
-```
-
-#### Throws
-
-- `Error`
-- `AggregateError`
-- `SyntaxError`
-- `TypeError`
-
 ## Recipes
 
 - [std/http](./examples/std_http/README.md)
@@ -514,6 +180,6 @@ type Result<
 
 ## License
 
-Copyright © 2022-present [TomokiMiyauci](https://github.com/TomokiMiyauci).
+Copyright © 2022-present [graphqland](https://github.com/graphqland).
 
 Released under the [MIT](./LICENSE) license

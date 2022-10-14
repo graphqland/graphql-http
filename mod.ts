@@ -1,5 +1,5 @@
-export { default as createHandler } from "./handler.ts";
-export { createRequest, resolveRequest } from "./requests.ts";
-export { createResponse, resolveResponse } from "./responses.ts";
-export { parseGraphQLParameters } from "./parses.ts";
-export { type GraphQLParameters } from "./types.ts";
+// Copyright 2022-latest the graphqland authors. All rights reserved. MIT license.
+// This module is browser compatible.
+
+export { createHandler } from "./handler.ts";
+export { type HandlerOptions } from "./types.ts";

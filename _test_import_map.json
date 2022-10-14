@@ -1,8 +1,8 @@
 {
   "imports": {
     "https://deno.land/x/graphql_http@$VERSION/": "./",
-    "https://deno.land/std@$VERSION/": "https://deno.land/std@0.147.0/",
-    "https://esm.sh/graphql@$VERSION": "https://esm.sh/graphql@16.5.0",
-    "https://deno.land/x/pure_json@$VERSION/": "https://deno.land/x/pure_json@1.0.0-beta.1/"
+    "https://deno.land/std@$VERSION/": "https://deno.land/std@0.159.0/",
+    "https://esm.sh/graphql@$VERSION": "https://esm.sh/v96/graphql@16.6.0",
+    "https://deno.land/x/gql_request@$VERSION/": "https://deno.land/x/gql_request@1.0.0-beta.1/"
   }
 }
