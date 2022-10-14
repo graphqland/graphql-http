@@ -1,26 +1,19 @@
-import { BuildOptions } from "https://deno.land/x/dnt@0.28.0/mod.ts";
+import { BuildOptions } from "https://deno.land/x/dnt@0.31.0/mod.ts";
 
 export const makeOptions = (version: string): BuildOptions => ({
   test: false,
-  shims: {
-    deno: true,
-  },
-  compilerOptions: {
-    lib: ["dom", "es2022"],
-  },
-  typeCheck: false,
+  shims: {},
+  typeCheck: true,
   entryPoints: ["./mod.ts"],
   outDir: "./npm",
   package: {
     name: "gql-http",
     version,
     description:
-      "GraphQL client and handler compliant with GraphQL over HTTP specification",
+      "GraphQL request handler compliant with GraphQL-over-HTTP specification",
     keywords: [
       "graphql",
       "http",
-      "middleware",
-      "graphql-playground",
     ],
     license: "MIT",
     homepage: "https://github.com/TomokiMiyauci/graphql-http",
