@@ -1,3 +1,10 @@
+# [1.0.0-beta.20](https://github.com/graphqland/graphql-http/compare/1.0.0-beta.19...1.0.0-beta.20) (2022-10-27)
+
+
+### Features
+
+* **deps:** update deps ([756d55c](https://github.com/graphqland/graphql-http/commit/756d55c56b00feafc04f34855e4bbebd0a23f632))
+
 # [1.0.0-beta.19](https://github.com/graphqland/graphql-http/compare/1.0.0-beta.18...1.0.0-beta.19) (2022-10-14)
 
 
