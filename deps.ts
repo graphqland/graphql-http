@@ -8,5 +8,5 @@ export {
 export {
   createResponse,
   type ExecutionParams,
-} from "https://deno.land/x/graphql_response@1.0.0-beta.2/mod.ts";
+} from "https://deno.land/x/graphql_response@1.0.0-beta.4/mod.ts";
 export { type HttpHandler } from "https://deno.land/x/http_utils@1.0.0-beta.6/mod.ts";
